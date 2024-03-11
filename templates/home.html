@@ -1,11 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-</head>
-<body>
-    <h1>Intro</h1>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<div class="w3-container w3-content" style="max-width: 800px; margin-top: 80px; text-align: center;">
+    <div>
+        <h2>Welcome To InternLink</h2>
+        <p>Connecting Futures, Bridging Opporunities</p>
+    </div>
+
+    <div class="button-container" style="margin-top: 20px;">
+        <a href="{{ url_for('register') }}" class="w3-button w3-blue w3-padding-large w3-round-large">Register</a>
+        <a href="{{ url_for('login') }}" class="w3-button w3-blue w3-padding-large w3-round-large">Login</a>
+        <a href="{{ url_for('view_jobs') }}" class="w3-button w3-blue w3-padding-large w3-round-large">View Intern Jobs</a>
+    </div>
+</div>
+{% endblock %}
