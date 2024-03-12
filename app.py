@@ -26,7 +26,7 @@ db = SQLAlchemy(app)
 class Intern(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     full_name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), nullable=False, unique=True)
+    intern_email = db.Column(db.String(100), nullable=False, unique=True)
     graduation_year = db.Column(db.String(20), nullable=False)
     resume_path = db.Column(db.String(200), nullable=False)
     intern_password = db.Column(db.String(100), nullable=False)
@@ -89,7 +89,7 @@ def register():
 
         if user_type == 'intern':
             full_name = request.form['full_name']
-            email = request.form['email']
+            intern_email = request.form['intern_email']
             graduation_year = request.form['graduation_year']
             resume_file = request.files['resume']
             intern_password = request.form['intern_password']
@@ -102,7 +102,7 @@ def register():
             hashed_password = generate_password_hash(intern_password)
             resume_path = 'path_to_upload_folder/' + resume_file.filename
 
-            new_intern = Intern(full_name=full_name, email=email, graduation_year=graduation_year, resume_path=resume_path, intern_password=hashed_password)
+            new_intern = Intern(full_name=full_name, intern_email=intern_email, graduation_year=graduation_year, resume_path=resume_path, intern_password=hashed_password)
             resume_file.save(resume_path)
 
             db.session.add(new_intern)
@@ -147,13 +147,13 @@ def login():
         if intern_user and check_password_hash(intern_user.intern_password, password):
             login_user(intern_user)
             flash('Logged in successfully!', 'success')
-            return redirect(url_for('profile'))
+            return redirect(url_for('profile'), user=intern_user, user_type='Intern')
 
         organization_user = Organization.query.filter_by(email=email).first()
         if organization_user and check_password_hash(organization_user.org_password, password):
             login_user(organization_user)
             flash('Logged in successfully!', 'success')
-            return redirect(url_for('profile'))
+            return redirect(url_for('profile'), user=organization_user, user_type='Organization')
 
         flash('Invalid email or password. Please try again.', 'error')
         return redirect(url_for('login'))
