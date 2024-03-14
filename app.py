@@ -79,6 +79,12 @@ class Organization(db.Model):
 with app.app_context():
     db.create_all()
 
+@app.route('/logout', methods=['GET', 'POST'])
+def logout():
+    logout_user()
+    flash('You have been logged out successfully!', 'success')
+    return redirect(url_for('index'))
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     return render_template('register.html')
@@ -203,13 +209,13 @@ def login():
         if intern_user and check_password_hash(intern_user.intern_password, password):
             login_user(intern_user)
             flash('Logged in successfully!', 'success')
-            return redirect(url_for('profile'))
+            return redirect(url_for('profile_intern'))
 
         organization_user = Organization.query.filter_by(org_email=email).first()
         if organization_user and check_password_hash(organization_user.org_password, password):
             login_user(organization_user)
             flash('Logged in successfully!', 'success')
-            return redirect(url_for('profile2'))
+            return redirect(url_for('profile_organization'))
 
         flash('Invalid email or password. Please try again.', 'error')
         return redirect(url_for('login'))
@@ -220,17 +226,27 @@ def login():
 def view_jobs():
     return render_template("view_jobs.html")
 
-@app.route("/profile")
-def profile():
-    user = current_user
-    user_type = 'Intern'
-    return render_template("profile.html", user=user, user_type=user_type)
+@app.route("/profile/intern")
+@login_required
+def profile_intern():
+    if current_user and isinstance(current_user, Intern):
+        user = current_user
+        user_type = 'Intern'
+        return render_template("profile.html", user=user, user_type=user_type)
+    else:
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
 
-@app.route("/profile2")
-def profile2():
-    user = current_user
-    user_type = 'Organization'
-    return render_template("profile.html", user=user, user_type=user_type)
+@app.route("/profile/organization")
+@login_required
+def profile_organization():
+    if current_user and isinstance(current_user, Organization):
+        user = current_user
+        user_type = 'Organization'
+        return render_template("profile.html", user=user, user_type=user_type)
+    else:
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -28,5 +28,42 @@
         <p><strong>Requirements:</strong> {{ user.requirements }}</p>
         {% endif %}
     </div>
+    <form action="{{ url_for('logout') }}" method="post" style="margin-top: 20px;">
+        <input type="submit" value="Logout" class="w3-button w3-round w3-pink">
+    </form>
 </div>
-{% endblock %}
+
+<style>
+    .w3-container {
+        padding: 20px;
+        background-color: #f2f2f2;
+        border-radius: 50px;
+    }
+
+    .w3-input {
+        width: 90%;
+        padding: 10px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        border-radius: 15px;
+        box-sizing: border-box;
+    }
+
+    .w3-image {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+        font-weight: bold;
+    }
+
+    .error-message {
+        color: red;
+        font-size: 14px;
+    }
+</style>
+{%endblock%}
