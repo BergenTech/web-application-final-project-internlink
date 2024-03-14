@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Register As Organization{% endblock %}
+
+{% block content %}
+<div class="w3-container w3-content" style="max-width: 800px; margin-top: 80px; text-align: center;">
+    <h2>Register As Organization</h2>
+    <form method="POST" action="{{ url_for('register_organization') }}" class="w3-row-padding">
+        <div class="input-container">
+            <label for="organization_name">Organization Name:</label><br>
+            <input type="text" id="organization_name" name="organization_name" class="w3-input w3-round" required><br>
+
+            <label for="email">Email:</label><br>
+            <input type="email" id="org_email" name="org_email" class="w3-input w3-round"><br>
+
+            <label for="org_password">Password:</label><br>
+            <input type="password" id="org_password" name="org_password" class="w3-input w3-round" required><br>
+
+            <label for="org_confirm_password">Confirm Password:</label><br>
+            <input type="password" id="org_confirm_password" name="org_confirm_password" class="w3-input w3-round" required><br>
+
+            <label for="topic">Topic:</label><br>
+            <input type="text" id="topic" name="topic" class="w3-input w3-round"><br>
+
+            <label for="day_hours">Day+Hours:</label><br>
+            <input type="text" id="day_hours" name="day_hours" class="w3-input w3-round"><br>
+
+            <label for="paid_unpaid">Paid/Unpaid:</label><br>
+            <input type="text" id="paid_unpaid" name="paid_unpaid" class="w3-input w3-round"><br>
+
+            <label for="requirements">Requirements:</label><br>
+            <textarea id="requirements" name="requirements" class="w3-input w3-round"></textarea><br>
+        </div>
+
+        <input type="submit" value="Register" class="w3-button w3-round w3-pink w3-margin-top">
+    </form>
+</div>
+
+<style>
+    .w3-container {
+        padding: 20px;
+        background-color: #f2f2f2;
+        border-radius: 50px;
+    }
+
+    .w3-input {
+        width: 90%;
+        padding: 10px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        border-radius: 15px;
+        box-sizing: border-box;
+    }
+
+    .w3-image {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+        font-weight: bold;
+    }
+
+    .error-message {
+        color: red;
+        font-size: 14px;
+    }
+</style>
+{%endblock%}

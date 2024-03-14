@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="w3-container w3-content" style="max-width: 800px; margin-top: 80px; text-align: center;">
+    <h2>Register</h2>
+    <div class="registration-type">
+        <button class="w3-button w3-round w3-blue" onclick="selectUserType('organization')">Register As Organization</button>
+        <button class="w3-button w3-round w3-blue" onclick="selectUserType('intern')">Register As Intern</button>
+    </div>
+    <br>
+    <form id="registration-form" method="POST" action="{{ url_for('register') }}" enctype="multipart/form-data" style="display: none;" class="w3-row-padding">
+        <input type="hidden" id="user_type" name="user_type" value="">
+        <div id="intern-fields" style="display: none;" class="w3-half">
+            <div class="input-container">
+                <label for="full_name">Full Name:</label><br>
+                <input type="text" id="full_name" name="full_name" class="w3-input w3-round w3-half"><br>
+
+                <label for="email">Email:</label><br>
+                <input type="email" id="email" name="email" class="w3-input w3-round w3-half"><br>
+
+                <label for="intern_password">Password:</label><br>
+                <input type="password" id="intern_password" name="intern_password" class="w3-input w3-round w3-half"><br>
+
+                <label for="intern_confirm_password">Confirm Password:</label><br>
+                <input type="password" id="intern_confirm_password" name="intern_confirm_password" class="w3-input w3-round w3-half"><br>
+
+                <label for="resume">Resume:</label><br>
+                <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx" class="w3-input w3-round w3-half"><br>
+
+                <label for="graduation_year">Graduation Year:</label><br>
+                <input type="text" id="graduation_year" name="graduation_year" class="w3-input w3-round w3-half"><br>
+            </div>
+        </div>
+        <div id="organization-fields" style="display: none;" class="w3-half">
+            <div class="input-container">
+                <label for="organization_name">Organization Name:</label><br>
+                <input type="text" id="organization_name" name="organization_name" class="w3-input w3-round w3-half"><br>
+
+                <label for="email">Email:</label><br>
+                <input type="email" id="email" name="email" class="w3-input w3-round w3-half"><br>
+
+                <label for="org_password">Password:</label><br>
+                <input type="password" id="org_password" name="org_password" class="w3-input w3-round w3-half"><br>
+
+                <label for="org_confirm_password">Confirm Password:</label><br>
+                <input type="password" id="org_confirm_password" name="org_confirm_password" class="w3-input w3-round w3-half"><br>
+
+                <label for="topic">Topic:</label><br>
+                <input type="text" id="topic" name="topic" class="w3-input w3-round w3-half"><br>
+
+                <label for="day_hours">Day+Hours:</label><br>
+                <input type="text" id="day_hours" name="day_hours" class="w3-input w3-round w3-half"><br>
+
+                <label for="paid_unpaid">Paid/Unpaid:</label><br>
+                <input type="text" id="paid_unpaid" name="paid_unpaid" class="w3-input w3-round w3-half"><br>
+
+                <label for="requirements">Requirements:</label><br>
+                <textarea id="requirements" name="requirements" class="w3-input w3-round w3-half"></textarea><br>
+            </div>
+        </div>
+        <div class="w3-half w3-container">
+            <img src="https://img.freepik.com/premium-photo/modern-abstract-wallpaper-with-geometric-shapes-made-reflective-refractive-material_2227-2567.jpg" alt="Image" class="w3-image" style="max-height: 10000px;">
+        </div>
+
+        <input type="submit" value="Register" class="w3-button w3-round w3-pink w3-margin-top">
+    </form>
+</div>
+
+<script>
+    function selectUserType(type) {
+        document.getElementById('user_type').value = type;
+        document.getElementById('registration-form').style.display = 'block';
+
+        if (type === 'intern') {
+            document.getElementById('intern-fields').style.display = 'block';
+            document.getElementById('organization-fields').style.display = 'none';
+        } else if (type === 'organization') {
+            document.getElementById('intern-fields').style.display = 'none';
+            document.getElementById('organization-fields').style.display = 'block';
+        }
+    }
+</script>
+
+<style>
+    .w3-container {
+        padding: 20px;
+        background-color: #f2f2f2;
+        border-radius: 50px;
+    }
+
+    .w3-input {
+        width: 90%;
+        padding: 10px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        border-radius: 15px;
+        box-sizing: border-box;
+    }
+
+    .w3-image {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+        font-weight: bold;
+    }
+</style>
+{%endblock%}

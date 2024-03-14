@@ -4,20 +4,9 @@
 {% block content %}
 <div class="w3-container w3-content" style="max-width: 800px; margin-top: 80px; text-align: center;">
     <h2>Your Profile</h2>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    {% for category, message in messages %}
-    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-       <strong>{{ message }}</strong>
-       <button type="button" class="btn-close" data-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
     <div>
         <p><strong>User Type:</strong> {{ user_type }}</p>
-        <p><strong>Name:</strong> {% if user_type == 'Intern' %} {{ user.full_name }} {% else %} {{ user.organization_name }} {% endif %}</p>
-        <p><strong>Email:</strong> {% if user_type == 'Intern' %} {{ user.intern_email }} {% else %} {{ user.org_email }} {% endif %}</p>
+        <p><strong>Email:</strong> {% if user_type == 'Intern' %} {{ user.email }} {% else %} {{ user.org_email }} {% endif %}</p>
         {% if user_type == 'Intern' %}
         <p><strong>Graduation Year:</strong> {{ user.graduation_year }}</p>
         <p><strong>Resume:</strong> <a href="{{ url_for('static', filename=user.resume_path) }}" target="_blank">View Resume</a></p>
