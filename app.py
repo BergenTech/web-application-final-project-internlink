@@ -84,6 +84,56 @@ with app.app_context():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+<<<<<<< HEAD
+=======
+    if request.method == 'POST':
+        user_type = request.form['user_type']
+
+        if user_type == 'intern':
+            full_name = request.form['full_name']
+            intern_email = request.form['intern_email']
+            graduation_year = request.form['graduation_year']
+            resume_file = request.files['resume']
+            intern_password = request.form['intern_password']
+            intern_confirm_password = request.form['intern_confirm_password']
+
+            if intern_password != intern_confirm_password:
+                flash('Passwords do not match!', 'error')
+                return redirect(url_for('register'))
+
+            hashed_password = generate_password_hash(intern_password)
+            resume_path = 'path_to_upload_folder/' + resume_file.filename
+
+            new_intern = Intern(full_name=full_name, intern_email=intern_email, graduation_year=graduation_year, resume_path=resume_path, intern_password=hashed_password)
+            resume_file.save(resume_path)
+
+            db.session.add(new_intern)
+            db.session.commit()
+
+        elif user_type == 'organization':
+            organization_name = request.form['organization_name']
+            org_email = request.form['org_email']
+            topic = request.form['topic']
+            day_hours = request.form['day_hours']
+            paid_unpaid = request.form['paid_unpaid']
+            requirements = request.form['requirements']
+            org_password = request.form['org_password']
+            org_confirm_password = request.form['org_confirm_password']
+
+            if org_password != org_confirm_password:
+                flash('Passwords do not match!', 'error')
+                return redirect(url_for('register'))
+
+            hashed_password = generate_password_hash(org_password)
+
+            new_organization = Organization(organization_name=organization_name, org_email=org_email, topic=topic, day_hours=day_hours, paid_unpaid=paid_unpaid, requirements=requirements, org_password=hashed_password)
+            db.session.add(new_organization)
+            db.session.commit()
+
+        flash('User registered successfully!', 'success')
+        return redirect(url_for('index'))
+
+>>>>>>> 6faa63f90008a82260b3df2f19053ca97acee33b
     return render_template('register.html')
 
 @app.route('/register/intern', methods=['GET', 'POST'])
@@ -206,13 +256,17 @@ def login():
         if intern_user and check_password_hash(intern_user.intern_password, password):
             login_user(intern_user)
             flash('Logged in successfully!', 'success')
-            return redirect(url_for('profile'))
+            return redirect(url_for('profile'), user=intern_user, user_type='Intern')
 
         organization_user = Organization.query.filter_by(org_email=email).first()
         if organization_user and check_password_hash(organization_user.org_password, password):
             login_user(organization_user)
             flash('Logged in successfully!', 'success')
+<<<<<<< HEAD
             return redirect(url_for('profile2'))
+=======
+            return redirect(url_for('profile'), user=organization_user, user_type='Organization')
+>>>>>>> 6faa63f90008a82260b3df2f19053ca97acee33b
 
         flash('Invalid email or password. Please try again.', 'error')
         return redirect(url_for('login'))
