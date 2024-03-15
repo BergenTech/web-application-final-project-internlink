@@ -85,6 +85,24 @@ def logout():
     flash('You have been logged out successfully!', 'success')
     return redirect(url_for('index'))
 
+@app.route('/contact')
+def contact():
+    pass
+
+@app.route('/messages')
+def messages():
+    organization_messages = [
+        {"from": "Organization Name 1", "message": "Sample message from Organization 1."},
+        {"from": "Organization Name 2", "message": "Sample message from Organization 2."}
+    ]
+
+    intern_messages = [
+        {"from": "Intern Name 1", "message": "Sample message from Intern 1."},
+        {"from": "Intern Name 2", "message": "Sample message from Intern 2."}
+    ]
+
+    return render_template('messages.html', organization_messages=organization_messages, intern_messages=intern_messages)
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     return render_template('register.html')

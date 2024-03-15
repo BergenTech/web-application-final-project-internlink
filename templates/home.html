@@ -12,6 +12,7 @@
     <div class="button-container" style="margin-top: 20px;">
         {% if current_user.is_authenticated %}
             <a href="{{ url_for('logout') }}" class="w3-button w3-pink w3-padding-large w3-round-large">Logout</a>
+            <a href="{{ url_for('messages') }}" class="w3-button w3-grey w3-padding-large w3-round-large">Messages</a>
         {% else %}
             <a href="{{ url_for('register') }}" class="w3-button w3-blue w3-padding-large w3-round-large">Register</a>
             <a href="{{ url_for('login') }}" class="w3-button w3-blue w3-padding-large w3-round-large">Login</a>
