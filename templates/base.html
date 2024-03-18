@@ -11,6 +11,33 @@
 <style>
     html, body, h1, h2, h3, h4, h5 {font-family: "Trebuchet MS", sans-serif}
 
+    .w3-container {
+        padding: 20px;
+        background-color: #f2f2f2;
+        border-radius: 50px;
+    }
+
+    .w3-input {
+        width: 90%;
+        padding: 10px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        border-radius: 15px;
+        box-sizing: border-box;
+    }
+
+    .w3-image {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+        font-weight: bold;
+    }
+
     .w3-button {
         background-color: lightblue;
         color: white;
@@ -32,6 +59,43 @@
     .button-container div {
         margin-bottom: 10px;
     }
+
+    .message-box {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    .message {
+        flex-grow: 1;
+    }
+
+    .reply-btn {
+        margin-left: 10px;
+    }
+
+    .alert-success {
+        color: #155724;
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+
+    .alert-error {
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 1px solid transparent;
+        border-radius: .25rem;
+    }
 </style>
 </head>
 <body class="w3-theme-l5">
@@ -43,10 +107,10 @@
   <a href="/" class="w3-bar-item w3-button w3-padding-large w3-theme-d4"><i class="fa fa-home w3-margin-right"></i>InternLink</a>
   <a href="/view_jobs" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="News"><i class="fa fa-globe"></i></a>
   <a href="
-  {% if current_user.is_authenticated %}
-    {% if current_user.__class__.__name__ == 'Intern' %}
+  {% if session.get('user_id') %}
+    {% if session.get('user_type') == 'Intern' %}
         /profile/intern
-    {% elif current_user.__class__.__name__ == 'Organization' %}
+    {% elif session.get('user_type') == 'Organization' %}
         /profile/organization
   {% endif %}
   {% else %}

@@ -3,24 +3,24 @@
 
 {% block content %}
 <div class="w3-container w3-content" style="max-width: 800px; margin-top: 80px; text-align: center;">
-    <h2>Your Profile</h2>
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    {% for category, message in messages %}
-    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-       <strong>{{ message }}</strong>
-       <button type="button" class="btn-close" data-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endfor %}
+        <div class="flashed-messages">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
     {% endif %}
     {% endwith %}
+    <h2>Your Profile</h2>
     <div>
         <p><strong>User Type:</strong> {{ user_type }}</p>
-        <p><strong>Name:</strong> {% if user_type == 'Intern' %} {{ user.full_name }} {% else %} {{ user.organization_name }} {% endif %}</p>
+        <p><strong>Name:</strong> {% if user_type == 'Intern' %} {{ user.intern_name }} {% else %} {{ user.organization_name }} {% endif %}</p>
         <p><strong>Email:</strong> {% if user_type == 'Intern' %} {{ user.intern_email }} {% else %} {{ user.org_email }} {% endif %}</p>
         {% if user_type == 'Intern' %}
         <p><strong>Graduation Year:</strong> {{ user.graduation_year }}</p>
-        <p><strong>Resume:</strong> <a href="{{ url_for('static', filename=user.resume_path) }}" target="_blank">View Resume</a></p>
         {% elif user_type == 'Organization' %}
         <p><strong>Topic:</strong> {{ user.topic }}</p>
         <p><strong>Day+Hours:</strong> {{ user.day_hours }}</p>
@@ -31,39 +31,6 @@
     <form action="{{ url_for('logout') }}" method="post" style="margin-top: 20px;">
         <input type="submit" value="Logout" class="w3-button w3-round w3-pink">
     </form>
+    <a href="{{ url_for('index') }}" class="w3-button w3-blue w3-padding-large w3-round-large">Home</a>
 </div>
-
-<style>
-    .w3-container {
-        padding: 20px;
-        background-color: #f2f2f2;
-        border-radius: 50px;
-    }
-
-    .w3-input {
-        width: 90%;
-        padding: 10px;
-        margin: 8px 0;
-        display: inline-block;
-        border: 1px solid #ccc;
-        border-radius: 15px;
-        box-sizing: border-box;
-    }
-
-    .w3-image {
-        width: 100%;
-        height: auto;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    label {
-        font-weight: bold;
-    }
-
-    .error-message {
-        color: red;
-        font-size: 14px;
-    }
-</style>
 {%endblock%}

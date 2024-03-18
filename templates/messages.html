@@ -3,8 +3,19 @@
 {% block title %}Messages{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 class="center-align">Messages</h1>
+<div class="w3-container w3-content" style="max-width: 800px; margin-top: 80px; text-align: center;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flashed-messages">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+    <h1>Messages</h1>
 
     <!-- Organization Messages -->
     <div class="card blue lighten-5">
@@ -44,29 +55,4 @@
         </div>
     </div>
 </div>
-
-<style>
-    .container {
-        padding: 20px;
-        margin-top: 50px;
-    }
-
-    .message-box {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-        border: 1px solid #ccc;
-        padding: 10px;
-        border-radius: 5px;
-    }
-
-    .message {
-        flex-grow: 1;
-    }
-
-    .reply-btn {
-        margin-left: 10px;
-    }
-</style>
 {% endblock %}

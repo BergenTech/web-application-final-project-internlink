@@ -3,11 +3,23 @@
 
 {% block content %}
 <div class="w3-container w3-content" style="max-width: 800px; margin-top: 80px; text-align: center;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flashed-messages">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
     <h2>Register As Intern</h2>
-    <form method="POST" action="{{ url_for('register_intern') }}" enctype="multipart/form-data" class="w3-row-padding">
+    <br>
+    <form method="POST" action="{{ url_for('register_intern') }}" class="w3-row-padding">
         <div class="input-container">
-            <label for="full_name">Full Name:</label><br>
-            <input type="text" id="full_name" name="full_name" class="w3-input w3-round" required><br>
+            <label for="intern_name">Full Name:</label><br>
+            <input type="text" id="intern_name" name="intern_name" class="w3-input w3-round" required><br>
 
             <label for="intern_email">Email:</label><br>
             <input type="email" id="intern_email" name="intern_email" class="w3-input w3-round"><br>
@@ -19,47 +31,10 @@
             <input type="password" id="intern_confirm_password" name="intern_confirm_password" class="w3-input w3-round" required><br>
 
             <label for="graduation_year">Graduation Year:</label><br>
-            <input type="text" id="graduation_year" name="graduation_year" class="w3-input w3-round"><br>
-
-            <label for="resume">Resume:</label><br>
-            <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx" class="w3-input w3-round"><br>
+            <input type="text" id="graduation_year" name="graduation_year" class="w3-input w3-round">
         </div>
 
         <input type="submit" value="Register" class="w3-button w3-round w3-pink w3-margin-top">
     </form>
 </div>
-
-<style>
-    .w3-container {
-        padding: 20px;
-        background-color: #f2f2f2;
-        border-radius: 50px;
-    }
-
-    .w3-input {
-        width: 90%;
-        padding: 10px;
-        margin: 8px 0;
-        display: inline-block;
-        border: 1px solid #ccc;
-        border-radius: 15px;
-        box-sizing: border-box;
-    }
-
-    .w3-image {
-        width: 100%;
-        height: auto;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    label {
-        font-weight: bold;
-    }
-
-    .error-message {
-        color: red;
-        font-size: 14px;
-    }
-</style>
 {%endblock%}

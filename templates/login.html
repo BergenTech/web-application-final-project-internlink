@@ -2,18 +2,18 @@
 {%block title%}Login{%endblock%}
 
 {%block content%}
+<div class="w3-container w3-content" style="max-width: 400px; margin-top: 80px; text-align: center;">
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    {% for category, message in messages %}
-    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-       <strong>{{ message }}</strong>
-       <button type="button" class="btn-close" data-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endfor %}
+        <div class="flashed-messages">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
     {% endif %}
     {% endwith %}
-
-<div class="w3-container w3-content" style="max-width: 400px; margin-top: 80px; text-align: center;">
     <h2>Login</h2>
     <form id="login-form" method="POST" action="{{ url_for('login') }}" style="margin-top: 20px;">
         <label for="email">Email:</label><br>
@@ -25,38 +25,4 @@
         <input type="submit" value="Login" class="w3-button w3-round w3-pink">
     </form>
 </div>
-
-<style>
-    .w3-container {
-        padding: 20px;
-        background-color: #f2f2f2;
-        border-radius: 50px;
-    }
-
-    .w3-input {
-        width: 90%;
-        padding: 10px;
-        margin: 8px 0;
-        display: inline-block;
-        border: 1px solid #ccc;
-        border-radius: 15px;
-        box-sizing: border-box;
-    }
-
-    .w3-image {
-        width: 100%;
-        height: auto;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    label {
-        font-weight: bold;
-    }
-
-    .error-message {
-        color: red;
-        font-size: 14px;
-    }
-</style>
 {%endblock%}

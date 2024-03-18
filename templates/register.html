@@ -3,54 +3,21 @@
 
 {% block content %}
 <div class="w3-container w3-content" style="max-width: 800px; margin-top: 80px; text-align: center;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flashed-messages">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
     <h2>Register</h2>
     <div class="registration-type">
         <a href="{{ url_for('register_intern') }}" class="w3-button w3-round w3-blue">Register As Intern</a>
         <a href="{{ url_for('register_organization') }}" class="w3-button w3-round w3-blue">Register As Organization</a>
     </div>
 </div>
-
-<script>
-    function selectUserType(type) {
-        document.getElementById('user_type').value = type;
-        document.getElementById('registration-form').style.display = 'block';
-
-        if (type === 'intern') {
-            document.getElementById('intern-fields').style.display = 'block';
-            document.getElementById('organization-fields').style.display = 'none';
-        } else if (type === 'organization') {
-            document.getElementById('intern-fields').style.display = 'none';
-            document.getElementById('organization-fields').style.display = 'block';
-        }
-    }
-</script>
-
-<style>
-    .w3-container {
-        padding: 20px;
-        background-color: #f2f2f2;
-        border-radius: 50px;
-    }
-
-    .w3-input {
-        width: 90%;
-        padding: 10px;
-        margin: 8px 0;
-        display: inline-block;
-        border: 1px solid #ccc;
-        border-radius: 15px;
-        box-sizing: border-box;
-    }
-
-    .w3-image {
-        width: 100%;
-        height: auto;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    label {
-        font-weight: bold;
-    }
-</style>
 {%endblock%}
