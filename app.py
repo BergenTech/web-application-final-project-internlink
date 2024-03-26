@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 from flask_login import LoginManager, UserMixin
@@ -19,6 +19,31 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 db = SQLAlchemy(app)
+
+class Admin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    admin_name = db.Column(db.String(100), nullable=False)
+    admin_email = db.Column(db.String(100), nullable=False, unique=True)
+    admin_password = db.Column(db.String(100), nullable=False)
+
+    def get_id(self):
+        return str(self.id)
+
+    @property
+    def is_active(self):
+        return True
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
+    
+    @login_manager.user_loader
+    def load_user(user_id):
+        return Admin.query.get(int(user_id))
 
 class Organization(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -158,6 +183,29 @@ def register_organization():
 
     return render_template('register_organization.html')
 
+@app.route('/register/admin', methods=['GET', 'POST'])
+def register_admin():
+    if request.method == 'POST':
+        admin_name = request.form['admin_name']
+        admin_email = request.form['admin_email']
+        admin_password = request.form['admin_password']
+        admin_confirm_password = request.form['admin_confirm_password']
+
+        if admin_password != admin_confirm_password:
+            flash('Passwords do not match!', 'error')
+            return redirect(url_for('register_admin'))
+
+        hashed_password = generate_password_hash(admin_password)
+
+        new_admin = Admin(admin_name=admin_name, admin_email=admin_email, admin_password=hashed_password)
+        db.session.add(new_admin)
+        db.session.commit()
+
+        flash('Intern registered successfully!', 'success')
+        return redirect(url_for('login'))
+
+    return render_template('register_admin.html')
+
 @app.route("/")
 def index():
     return render_template("home.html")
@@ -181,6 +229,13 @@ def login():
             session['user_type'] = 'Organization'
             flash('Logged in successfully!', 'success')
             return redirect(url_for('profile_organization'))
+        
+        admin_user = Admin.query.filter_by(admin_email=email).first()
+        if admin_user and check_password_hash(admin_user.admin_password, password):
+            session['user_id'] = admin_user.id
+            session['user_type'] = 'Admin'
+            flash('Logged in successfully!', 'success')
+            return redirect(url_for('profile_admin'))
 
         flash('Invalid email or password. Please try again.', 'error')
         return redirect(url_for('login'))
@@ -191,6 +246,17 @@ def login():
 def view_jobs():
     return render_template("view_jobs.html")
 
+@app.route("/profile/intern")
+def profile_intern():
+    if session.get('user_id') and session.get('user_type') == 'Intern':
+        user_id = session['user_id']
+        intern = Intern.query.get(user_id)
+        login_user(intern)
+        return render_template("profile.html", user=intern, user_type='Intern')
+    else:
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
 @app.route("/profile/organization")
 def profile_organization():
     if session.get('user_id') and session.get('user_type') == 'Organization':
@@ -202,16 +268,40 @@ def profile_organization():
         flash('You do not have permission to access this page.', 'error')
         return redirect(url_for('index'))
     
-@app.route("/profile/intern")
-def profile_intern():
-    if session.get('user_id') and session.get('user_type') == 'Intern':
+@app.route("/profile/admin")
+def profile_admin():
+    if session.get('user_id') and session.get('user_type') == 'Admin':
         user_id = session['user_id']
-        intern = Intern.query.get(user_id)
-        login_user(intern)
-        return render_template("profile.html", user=intern, user_type='Intern')
+        admin = Admin.query.get(user_id)
+        login_user(admin)
+        return render_template("profile.html", user=admin, user_type='Admin')
     else:
         flash('You do not have permission to access this page.', 'error')
         return redirect(url_for('index'))
+    
+@app.route('/edit_profile', methods=['POST'])
+def edit_profile():
+    user_type = session.get('user_type')
+    if user_type == 'Intern':
+        user = Intern.query.get(session['user_id'])
+        user.intern_name = request.form.get('intern_name', user.intern_name)
+        user.intern_email = request.form.get('intern_email', user.intern_email)
+        user.graduation_year = request.form.get('graduation_year', user.graduation_year)
+    elif user_type == 'Organization':
+        user = Organization.query.get(session['user_id'])
+        user.organization_name = request.form.get('organization_name', user.organization_name)
+        user.org_email = request.form.get('org_email', user.org_email)
+        user.topic = request.form.get('topic', user.topic)
+        user.day_hours = request.form.get('day_hours', user.day_hours)
+        user.paid_unpaid = request.form.get('paid_unpaid', user.paid_unpaid)
+        user.requirements = request.form.get('requirements', user.requirements)
+    elif user_type == 'Admin':
+        user = Admin.query.get(session['user_id'])
+        user.admin_name = request.form.get('admin_name', user.admin_name)
+        user.admin_email = request.form.get('admin_email', user.admin_email)
+    db.session.commit()
+    flash('Profile updated successfully!', 'success')
+    return redirect(url_for(f'profile_{user_type.lower()}'))
 
 if __name__ == "__main__":
     app.run(debug=True)

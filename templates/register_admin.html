@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Register As Admin{% endblock %}
+
+{% block content %}
+<div class="w3-container w3-content" style="max-width: 800px; margin-top: 80px; text-align: center;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flashed-messages">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+    <h2>Register As Admin</h2>
+    <br>
+    <form method="POST" action="{{ url_for('register_admin') }}" class="w3-row-padding">
+        <div class="input-container">
+            <label for="admin_name">Name:</label><br>
+            <input type="text" id="admin_name" name="admin_name" class="w3-input w3-round" required><br>
+
+            <label for="admin_email">Email:</label><br>
+            <input type="email" id="admin_email" name="admin_email" class="w3-input w3-round" required><br>
+
+            <label for="admin_password">Password:</label><br>
+            <input type="password" id="admin_password" name="admin_password" class="w3-input w3-round" required><br>
+
+            <label for="admin_confirm_password">Confirm Password:</label><br>
+            <input type="password" id="admin_confirm_password" name="admin_confirm_password" class="w3-input w3-round" required><br>
+        </div>
+
+        <input type="submit" value="Register" class="w3-button w3-round w3-pink w3-margin-top">
+    </form>
+</div>
+{%endblock%}
