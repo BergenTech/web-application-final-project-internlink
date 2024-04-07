@@ -208,6 +208,14 @@ def register_admin():
 
 @app.route("/")
 def index():
+    if session.get('user_id') and session.get('user_type') == 'Intern':
+        user_id = session['user_id']
+        intern = Intern.query.get(user_id)
+        return render_template("home.html", user=intern, user_type='Intern')
+    if session.get('user_id') and session.get('user_type') == 'Admin':
+        user_id = session['user_id']
+        admin = Admin.query.get(user_id)
+        return render_template("home.html", user=admin, user_type='Admin')
     return render_template("home.html")
 
 @app.route('/login', methods=['GET', 'POST'])

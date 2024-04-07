@@ -15,19 +15,23 @@
     {% endif %}
     {% endwith %}
     <div>
-        <h2>Welcome To InternLink</h2>
-        <p>Connecting Futures, Bridging Opportunities</p>
+        {% if current_user.is_authenticated %}
+            <h2>Hello, <strong>{% if user_type == 'Intern' %} {{ user.intern_name }} {% elif user_type == 'Admin' %} {{ user.admin_name }} {% else %} {{ user.organization_name }} {% endif %}</strong></h2>
+        {% else %}
+            <h2>Welcome To InternLink</h2>
+            <p>Connecting Futures, Bridging Opportunities</p>
+        {% endif %}
     </div>
 
     <div class="button-container" style="margin-top: 20px;">
         {% if current_user.is_authenticated %}
-            <a href="{{ url_for('logout') }}" class="w3-button w3-pink w3-padding-large w3-round-large">Logout</a>
+            <a href="{{ url_for('logout') }}" class="w3-button w3-black w3-padding-large w3-round-large">Logout</a>
             <a href="{{ url_for('messages') }}" class="w3-button w3-grey w3-padding-large w3-round-large">Messages</a>
         {% else %}
-            <a href="{{ url_for('register') }}" class="w3-button w3-blue w3-padding-large w3-round-large">Register</a>
-            <a href="{{ url_for('login') }}" class="w3-button w3-blue w3-padding-large w3-round-large">Login</a>
+            <a href="{{ url_for('register') }}" class="w3-button w3-black w3-padding-large w3-round-large">Register</a>
+            <a href="{{ url_for('login') }}" class="w3-button w3-padding-large w3-round-large">Login</a>
         {% endif %}
-        <a href="{{ url_for('view_jobs') }}" class="w3-button w3-blue w3-padding-large w3-round-large">View Internships</a>
+        <a href="{{ url_for('view_jobs') }}" class="w3-button w3-padding-large w3-round-large">View Internships</a>
     </div>
 </div>
 {%endblock%}

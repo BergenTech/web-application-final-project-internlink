@@ -17,6 +17,10 @@
         border-radius: 50px;
     }
 
+    .w3-header {
+        background-color: black;
+    }
+
     .w3-input {
         width: 90%;
         padding: 10px;
@@ -39,7 +43,7 @@
     }
 
     .w3-button {
-        background-color: lightblue;
+        background-color: rgb(192, 163, 4);
         color: white;
         padding: 10px 20px;
         margin: 8px 0;
@@ -51,7 +55,25 @@
         transition: background-color 0.3s ease;
     }
 
+    .w3-home-button {
+        background-color: white;
+        color: black;
+        padding: 10px 20px;
+        margin: 8px 0;
+        border: none;
+        border-radius: 70px;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+    }
+
     .w3-button:hover {
+        transform: scale(1.1);
+        transition: transform 0.3s ease;
+    }
+
+    .w3-home-button:hover {
         transform: scale(1.1);
         transition: transform 0.3s ease;
     }
@@ -102,9 +124,9 @@
 
 <!-- Navbar -->
 <div class="w3-top">
- <div class="w3-bar w3-theme-d2 w3-left-align w3-large">
+ <div class="w3-bar w3-header w3-left-align w3-large">
   <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-theme-d2" href="javascript:void(0);" onclick="openNav()"><i class="fa fa-bars"></i></a>
-  <a href="/" class="w3-bar-item w3-button w3-padding-large w3-theme-d4"><i class="fa fa-home w3-margin-right"></i>InternLink</a>
+  <a href="/" class="w3-bar-item w3-home-button w3-padding-large"><i class="fa fa-home w3-margin-right"></i>InternLink</a>
   <a href="/view_jobs" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="News"><i class="fa fa-globe"></i></a>
   <a href="
   {% if session.get('user_id') %}
