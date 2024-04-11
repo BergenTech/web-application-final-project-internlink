@@ -53,7 +53,6 @@ class Organization(db.Model):
     day_hours = db.Column(db.String(100), nullable=False)
     paid_unpaid = db.Column(db.String(20), nullable=False)
     requirements = db.Column(db.Text, nullable=False)
-    org_password = db.Column(db.String(100), nullable=False)
 
     def get_id(self):
         return str(self.id)
@@ -156,8 +155,9 @@ def register_intern():
 
     return render_template('register_intern.html')
 
-@app.route('/register/organization', methods=['GET', 'POST'])
-def register_organization():
+@app.route('/add_organization', methods=['GET', 'POST'])
+@login_required
+def add_organization():
     if request.method == 'POST':
         organization_name = request.form['organization_name']
         org_email = request.form['org_email']
@@ -165,23 +165,14 @@ def register_organization():
         day_hours = request.form['day_hours']
         paid_unpaid = request.form['paid_unpaid']
         requirements = request.form['requirements']
-        org_password = request.form['org_password']
-        org_confirm_password = request.form['org_confirm_password']
 
-        if org_password != org_confirm_password:
-            flash('Passwords do not match!', 'error')
-            return redirect(url_for('register_organization'))
-
-        hashed_password = generate_password_hash(org_password)
-
-        new_organization = Organization(organization_name=organization_name, org_email=org_email, topic=topic, day_hours=day_hours, paid_unpaid=paid_unpaid, requirements=requirements, org_password=hashed_password)
+        new_organization = Organization(organization_name=organization_name, org_email=org_email, topic=topic, day_hours=day_hours, paid_unpaid=paid_unpaid, requirements=requirements)
         db.session.add(new_organization)
         db.session.commit()
 
-        flash('Organization registered successfully!', 'success')
-        return redirect(url_for('login'))
-
-    return render_template('register_organization.html')
+        flash('Organization added successfully!', 'success')
+        return render_template('add_organization.html')
+    return render_template('add_organization.html')
 
 @app.route('/register/admin', methods=['GET', 'POST'])
 def register_admin():
@@ -212,11 +203,12 @@ def index():
         user_id = session['user_id']
         intern = Intern.query.get(user_id)
         return render_template("home.html", user=intern, user_type='Intern')
-    if session.get('user_id') and session.get('user_type') == 'Admin':
+    elif session.get('user_id') and session.get('user_type') == 'Admin':
         user_id = session['user_id']
         admin = Admin.query.get(user_id)
         return render_template("home.html", user=admin, user_type='Admin')
-    return render_template("home.html")
+    else:
+        return render_template("home.html")
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -230,13 +222,6 @@ def login():
             session['user_type'] = 'Intern'
             flash('Logged in successfully!', 'success')
             return redirect(url_for('profile_intern'))
-
-        organization_user = Organization.query.filter_by(org_email=email).first()
-        if organization_user and check_password_hash(organization_user.org_password, password):
-            session['user_id'] = organization_user.id
-            session['user_type'] = 'Organization'
-            flash('Logged in successfully!', 'success')
-            return redirect(url_for('profile_organization'))
         
         admin_user = Admin.query.filter_by(admin_email=email).first()
         if admin_user and check_password_hash(admin_user.admin_password, password):
@@ -252,7 +237,8 @@ def login():
 
 @app.route("/view_jobs")
 def view_jobs():
-    return render_template("view_jobs.html")
+    organizations = Organization.query.all()
+    return render_template("view_jobs.html", organizations=organizations)
 
 @app.route("/profile/intern")
 def profile_intern():
@@ -261,17 +247,6 @@ def profile_intern():
         intern = Intern.query.get(user_id)
         login_user(intern)
         return render_template("profile.html", user=intern, user_type='Intern')
-    else:
-        flash('You do not have permission to access this page.', 'error')
-        return redirect(url_for('index'))
-    
-@app.route("/profile/organization")
-def profile_organization():
-    if session.get('user_id') and session.get('user_type') == 'Organization':
-        user_id = session['user_id']
-        organization = Organization.query.get(user_id)
-        login_user(organization)
-        return render_template("profile.html", user=organization, user_type='Organization')
     else:
         flash('You do not have permission to access this page.', 'error')
         return redirect(url_for('index'))

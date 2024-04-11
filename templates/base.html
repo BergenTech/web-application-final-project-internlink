@@ -132,8 +132,6 @@
   {% if session.get('user_id') %}
     {% if session.get('user_type') == 'Intern' %}
         /profile/intern
-    {% elif session.get('user_type') == 'Organization' %}
-        /profile/organization
     {% elif session.get('user_type') == 'Admin' %}
         /profile/admin
   {% endif %}

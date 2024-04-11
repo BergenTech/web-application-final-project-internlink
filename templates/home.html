@@ -27,11 +27,20 @@
         {% if current_user.is_authenticated %}
             <a href="{{ url_for('logout') }}" class="w3-button w3-black w3-padding-large w3-round-large">Logout</a>
             <a href="{{ url_for('messages') }}" class="w3-button w3-grey w3-padding-large w3-round-large">Messages</a>
+            {% if session.get('user_type') == 'Admin' %}
+                <a href="{{ url_for('add_organization') }}" class="w3-button w3-padding-large w3-round-large">Add Organization</a>
+            {% endif %}
+            {% if session.get('user_type') == 'Intern' %}
+                <a href="{{ url_for('view_jobs') }}" class="w3-button w3-padding-large w3-round-large">View Internships</a>
+            {% endif %}
         {% else %}
             <a href="{{ url_for('register') }}" class="w3-button w3-black w3-padding-large w3-round-large">Register</a>
-            <a href="{{ url_for('login') }}" class="w3-button w3-padding-large w3-round-large">Login</a>
+            <a href="{{ url_for('login') }}" class="w3-button w3-grey w3-padding-large w3-round-large">Login</a>
         {% endif %}
-        <a href="{{ url_for('view_jobs') }}" class="w3-button w3-padding-large w3-round-large">View Internships</a>
+    </div>
+
+    <div style="margin-top: 35px;">
+        <img src="{{ url_for('static', filename='home_page.png') }}" alt="Your Picture" class="w3-round" style="width: 500px; height: 500px;">
     </div>
 </div>
 {%endblock%}

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Register As Organization{% endblock %}
+{% block title %}Add Internship{% endblock %}
 
 {% block content %}
 <div class="w3-container w3-content" style="max-width: 800px; margin-top: 80px; text-align: center;">
@@ -14,21 +14,15 @@
         </div>
     {% endif %}
     {% endwith %}
-    <h2>Register As Organization</h2>
+    <h2>Add New Internship</h2>
     <br>
-    <form method="POST" action="{{ url_for('register_organization') }}" class="w3-row-padding">
+    <form method="POST" action="{{ url_for('add_organization') }}" class="w3-row-padding">
         <div class="input-container">
             <label for="organization_name">Organization Name:</label><br>
             <input type="text" id="organization_name" name="organization_name" class="w3-input w3-round" required><br>
 
             <label for="org_email">Email:</label><br>
             <input type="email" id="org_email" name="org_email" class="w3-input w3-round" required><br>
-
-            <label for="org_password">Password:</label><br>
-            <input type="password" id="org_password" name="org_password" class="w3-input w3-round" required><br>
-
-            <label for="org_confirm_password">Confirm Password:</label><br>
-            <input type="password" id="org_confirm_password" name="org_confirm_password" class="w3-input w3-round" required><br>
 
             <label for="topic">Topic:</label><br>
             <input type="text" id="topic" name="topic" class="w3-input w3-round"><br>
@@ -43,7 +37,7 @@
             <textarea id="requirements" name="requirements" class="w3-input w3-round"></textarea><br>
         </div>
 
-        <input type="submit" value="Register" class="w3-button w3-round w3-pink w3-margin-top">
+        <input type="submit" value="Add" class="w3-button w3-round w3-margin-top">
     </form>
 </div>
 {%endblock%}
