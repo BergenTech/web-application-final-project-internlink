@@ -7,6 +7,7 @@ from flask import Flask, render_template, request, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
+import csv
 
 app = Flask(__name__)
 login_manager = LoginManager(app)
@@ -47,12 +48,16 @@ class Admin(db.Model):
 
 class Organization(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    organization_name = db.Column(db.String(100), nullable=False)
-    org_email = db.Column(db.String(100), nullable=False, unique=True)
-    topic = db.Column(db.String(100), nullable=False)
-    day_hours = db.Column(db.String(100), nullable=False)
-    paid_unpaid = db.Column(db.String(20), nullable=False)
-    requirements = db.Column(db.Text, nullable=False)
+    company_name = db.Column(db.String(100), nullable=False)
+    website = db.Column(db.String(100), nullable=False)
+    street_address = db.Column(db.String(100), nullable=False)
+    city = db.Column(db.String(100), nullable=False)
+    state = db.Column(db.String(100), nullable=False)
+    zip_code = db.Column(db.String(20), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    internship_mentor = db.Column(db.String(100), nullable=False)
+    internship_topic = db.Column(db.String(100), nullable=False)
 
     def get_id(self):
         return str(self.id)
@@ -101,6 +106,28 @@ class Intern(db.Model):
 
 with app.app_context():
     db.create_all()
+
+def import_csv_data():
+    with app.app_context():
+        with open('static/internships.csv', 'r', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                new_organization = Organization(
+                    company_name=row['COMPANY NAME'],
+                    website=row['WEBSITE'],
+                    street_address=row['STREET ADDRESS'],
+                    city=row['CITY'],
+                    state=row['STATE'],
+                    zip_code=row['ZIP'],
+                    phone=row['PHONE'],
+                    email=row['EMAIL'],
+                    internship_mentor=row['INTERNSHIP MENTOR'],
+                    internship_topic=row['INTERNSHIP TOPIC']
+                )
+                db.session.add(new_organization)
+            db.session.commit()
+
+import_csv_data()
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():

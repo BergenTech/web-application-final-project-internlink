@@ -14,23 +14,63 @@
         </div>
     {% endif %}
     {% endwith %}
-    <h2 style="text-align: center;">Available Intern Jobs</h2>
+    <h2 style="text-align: center;">Internships</h2>
 
-    <div class="job-container" style="margin-top: 20px; display: flex; flex-direction: column; align-items: center;">
+    <div class="job-container" style="margin-top: 20px;">
         {% for organization in organizations %}
-            <div class="job-card" style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-bottom: 20px; display: flex; width: 100%;">
+            <div class="job-card" style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-bottom: 20px; display: flex;">
                 <div class="job-info" style="flex: 1;">
-                    <h3>{{ organization.organization_name }}</h3>
-                    <p>Topic: {{ organization.topic }}</p>
-                    <p>Time: {{ organization.day_hours }}</p>
-                    <p>Compensation: {{ organization.paid_unpaid }}</p>
-                    <p>Requirements: {{ organization.requirements }}</p>
+                    <h3>{{ organization.company_name }}</h3>
+                    <p>Website: <a href="{{ organization.website }}" target="_blank">{{ organization.website }}</a></p>
+                    <p>Address: {{ organization.street_address }}, {{ organization.city }}, {{ organization.state }}, {{ organization.zip_code }}</p>
+                    <p>Phone: {{ organization.phone }}</p>
+                    <p>Email: <a href="mailto:{{ organization.email }}">{{ organization.email }}</a></p>
+                    <p>Internship Mentor: {{ organization.internship_mentor }}</p>
+                    <p>Internship Topic: {{ organization.internship_topic }}</p>
                 </div>
-                <div class="job-actions">
-                    <a href="{{ url_for('contact') }}" class="w3-button w3-pink w3-round-large" style="margin-bottom: 10px;">Contact</a> <button class="w3-button w3-blue w3-round-large">View More</button>
+                <div class="job-actions" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <a href="{{ organization.website }}" class="w3-button w3-black w3-round-large" style="margin-bottom: 10px;">View More</a>
+                    <button class="w3-button w3-round-large" onclick="showContactForm(event, '{{ organization.email }}', '{{ loop.index }}')">Contact</button>
                 </div>
             </div>
+
+            <div id="contact-form-{{ loop.index }}" class="contact-form" style="display: none; text-align: center;">
+                <div style="width: 80%; margin: 0 auto;">
+                    <textarea class="w3-round" id="message-{{ loop.index }}" placeholder="Type your message here." style="width: 100%; min-height: 100px; resize: none;"></textarea>
+                    <button class="w3-button w3-round w3-grey w3-small" style="margin-bottom: 30px;" onclick="sendMessage('{{ organization.email }}', '{{ loop.index }}')">Send</button>
+                </div>
+            </div>            
         {% endfor %}
     </div>
 </div>
+
+<script>
+function showContactForm(event, email, index) {
+    event.preventDefault();
+    document.getElementById("contact-form-" + index).style.display = "block";
+}
+
+function sendMessage(email, index) {
+    var message = document.getElementById("message-" + index).value;
+    fetch('/send_message', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'to_email=' + encodeURIComponent(email) + '&message=' + encodeURIComponent(message)
+    })
+    .then(response => {
+        if (response.ok) {
+            alert('Message sent successfully!');
+            document.getElementById("contact-form-" + index).style.display = "none";
+        } else {
+            alert('Failed to send message!');
+        }
+    })
+    .catch(error => {
+        console.error('Error sending message:', error);
+        alert('Failed to send message!');
+    });
+}
+</script>
 {% endblock %}
