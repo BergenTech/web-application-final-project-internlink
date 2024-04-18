@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}View Interns{% endblock %}
+
+{% block content %}
+<div class="w3-container w3-content" style="max-width: 1000px; margin-top: 80px;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flashed-messages">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+    <h2 style="text-align: center;">Interns</h2>
+
+    <div class="job-container" style="margin-top: 20px;">
+        {% for intern in interns %}
+            <div class="job-card" style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-bottom: 20px; display: flex;">
+                <div class="job-info" style="flex: 1;">
+                    <h3>{{ intern.intern_name }}</h3>
+                    <p>Email: <a href="mailto:{{ intern.intern_email }}">{{ intern.intern_email }}</a></p>
+                    <p>Graduation Year: {{ intern.graduation_year }}</p>
+                    <p>Major: {{ intern.major }}</p>
+                    {% if intern.resume %}
+                        <p>Resume: <a href="{{ url_for('download_resume', filename=intern.resume) }}">Download Resume</a></p>
+                    {% endif %}
+                </div>
+                <div class="job-actions" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <button class="w3-button w3-red w3-round-large" style="margin-bottom: 10px;">Delete Profile</button>
+                    <button class="w3-button w3-grey w3-round-large" onclick="showContactForm(event, '{{ intern.intern_email }}', '{{ loop.index }}')">Contact</button>
+                </div>
+            </div>
+
+            <div id="contact-form-{{ loop.index }}" class="contact-form" style="display: none; text-align: center;">
+                <div style="width: 80%; margin: 0 auto;">
+                    <textarea class="w3-round" id="message-{{ loop.index }}" placeholder="Type your message here." style="width: 100%; min-height: 100px; resize: none;"></textarea>
+                    <button class="w3-button w3-round w3-grey w3-small" style="margin-bottom: 30px;" onclick="sendMessage('{{ intern.intern_email }}', '{{ loop.index }}')">Send</button>
+                </div>
+            </div>            
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function showContactForm(event, email, index) {
+        event.preventDefault();
+        document.getElementById("contact-form-" + index).style.display = "block";
+    }
+    
+    function sendMessage(email, index) {
+        var message = document.getElementById("message-" + index).value;
+        fetch('/send_message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'to_email=' + encodeURIComponent(email) + '&message=' + encodeURIComponent(message)
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Message sent successfully!');
+                document.getElementById("contact-form-" + index).style.display = "none";
+            } else {
+                alert('Failed to send message!');
+            }
+        })
+        .catch(error => {
+            console.error('Error sending message:', error);
+            alert('Failed to send message!');
+        });
+    }
+</script>
+{% endblock %}

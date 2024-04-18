@@ -21,45 +21,46 @@
         <p><strong>Email:</strong> {% if user_type == 'Intern' %} {{ user.intern_email }} {% elif user_type == 'Admin' %} {{ user.admin_email }} {% else %} {{ user.org_email }} {% endif %}</p>
         {% if user_type == 'Intern' %}
         <p><strong>Graduation Year:</strong> {{ user.graduation_year }}</p>
-        {% elif user_type == 'Organization' %}
-        <p><strong>Topic:</strong> {{ user.topic }}</p>
-        <p><strong>Day+Hours:</strong> {{ user.day_hours }}</p>
-        <p><strong>Paid/Unpaid:</strong> {{ user.paid_unpaid }}</p>
-        <p><strong>Requirements:</strong> {{ user.requirements }}</p>
+        <p><strong>Major:</strong> {{ user.major }}</p>
+        {% if user.resume %}
+        <p><strong>Resume:</strong> <a href="{{ url_for('download_resume', filename=user.resume) }}">{{ user.resume }}</a></p>
+        {% endif %}
         {% endif %}
     </div>
     
     <button onclick="toggleEditForm()" class="w3-button w3-round w3-grey w3-small" style="margin-left: 20px;">Edit</button>
     
-    <form id="editForm" action="{{ url_for('edit_profile') }}" method="post" style="display: none; width: 40%; float: right;">
+    <form id="editForm" action="{{ url_for('edit_profile') }}" method="post" enctype="multipart/form-data" style="display: none; width: 40%; float: right;" enctype="multipart/form-data">
         {% if user_type == 'Intern' %}
             <label for="intern_name">Name:</label>
-            <input type="text" id="intern_name" name="intern_name" value="{{ user.intern_name }}" required class="w3-input w3-round"><br><br>
+            <input type="text" id="intern_name" name="intern_name" value="{{ user.intern_name }}" required class="w3-input w3-round"><br>
             <label for="intern_email">Email:</label>
-            <input type="email" id="intern_email" name="intern_email" value="{{ user.intern_email }}" required class="w3-input w3-round"><br><br>
+            <input type="email" id="intern_email" name="intern_email" value="{{ user.intern_email }}" required class="w3-input w3-round"><br>
             <label for="graduation_year">Graduation Year:</label>
             <input type="text" id="graduation_year" name="graduation_year" value="{{ user.graduation_year }}" required class="w3-input w3-round"><br><br>
-        {% elif user_type == 'Organization' %}
-            <label for="organization_name">Organization Name:</label>
-            <input type="text" id="organization_name" name="organization_name" value="{{ user.organization_name }}" required class="w3-input w3-round"><br><br>
-            <label for="org_email">Email:</label>
-            <input type="email" id="org_email" name="org_email" value="{{ user.org_email }}" required class="w3-input w3-round"><br><br>
-            <label for="topic">Topic:</label>
-            <input type="text" id="topic" name="topic" value="{{ user.topic }}" required class="w3-input w3-round"><br><br>
-            <label for="day_hours">Day+Hours:</label>
-            <input type="text" id="day_hours" name="day_hours" value="{{ user.day_hours }}" required class="w3-input w3-round"><br><br>
-            <label for="paid_unpaid">Paid/Unpaid:</label>
-            <input type="text" id="paid_unpaid" name="paid_unpaid" value="{{ user.paid_unpaid }}" required class="w3-input w3-round"><br><br>
-            <label for="requirements">Requirements:</label>
-            <textarea id="requirements" name="requirements" required class="w3-input w3-round">{{ user.requirements }}</textarea><br><br>
+            <label for="major">Major:</label>
+            <select id="major" name="major" class="w3-select w3-round">
+                <option value="Automotive Engineering">Automotive Engineering</option>
+                <option value="Computer Science">Computer Science</option>
+                <option value="Fashion">Fashion</option>
+                <option value="Culinary">Culinary</option>
+                <option value="Aerospace Engineering">Aerospace Engineering</option>
+                <option value="Digital Media">Digital Media</option>
+                <option value="Commercial Art">Commercial Art</option>
+                <option value="Law">Law</option>
+                <option value="Business & Finance">Business & Finance</option>
+            </select>
+            <br><br>
+            <label for="resume">Resume:</label>
+            <input type="file" id="resume" name="resume" class="w3-input w3-round"><br>
         {% elif user_type == 'Admin' %}
             <label for="admin_name">Admin Name:</label>
-            <input type="text" id="admin_name" name="admin_name" value="{{ user.admin_name }}" required class="w3-input w3-round"><br><br>
+            <input type="text" id="admin_name" name="admin_name" value="{{ user.admin_name }}" required class="w3-input w3-round"><br>
             <label for="admin_email">Email:</label>
-            <input type="email" id="admin_email" name="admin_email" value="{{ user.admin_email }}" required class="w3-input w3-round"><br><br>
+            <input type="email" id="admin_email" name="admin_email" value="{{ user.admin_email }}" required class="w3-input w3-round"><br>
         {% endif %}
         <input type="submit" value="Save Changes" class="w3-button w3-round w3-grey w3-small">
-    </form>
+    </form>    
     
     <div style="clear: both;">
         <form action="{{ url_for('logout') }}" method="post" style="display: inline-block;">

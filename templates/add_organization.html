@@ -18,26 +18,38 @@
     <br>
     <form method="POST" action="{{ url_for('add_organization') }}" class="w3-row-padding">
         <div class="input-container">
-            <label for="organization_name">Organization Name:</label><br>
-            <input type="text" id="organization_name" name="organization_name" class="w3-input w3-round" required><br>
+            <label for="company_name">Company Name:</label><br>
+            <input type="text" id="company_name" name="company_name" class="w3-input w3-round" required><br>
 
-            <label for="org_email">Email:</label><br>
-            <input type="email" id="org_email" name="org_email" class="w3-input w3-round" required><br>
+            <label for="website">Website:</label><br>
+            <input type="text" id="website" name="website" class="w3-input w3-round" required><br>
 
-            <label for="topic">Topic:</label><br>
-            <input type="text" id="topic" name="topic" class="w3-input w3-round"><br>
+            <label for="street_address">Street Address:</label><br>
+            <input type="text" id="street_address" name="street_address" class="w3-input w3-round" required><br>
 
-            <label for="day_hours">Day+Hours:</label><br>
-            <input type="text" id="day_hours" name="day_hours" class="w3-input w3-round"><br>
+            <label for="city">City:</label><br>
+            <input type="text" id="city" name="city" class="w3-input w3-round" required><br>
 
-            <label for="paid_unpaid">Paid/Unpaid:</label><br>
-            <input type="text" id="paid_unpaid" name="paid_unpaid" class="w3-input w3-round"><br>
+            <label for="state">State:</label><br>
+            <input type="text" id="state" name="state" class="w3-input w3-round" required><br>
 
-            <label for="requirements">Requirements:</label><br>
-            <textarea id="requirements" name="requirements" class="w3-input w3-round"></textarea><br>
+            <label for="zip_code">Zip Code:</label><br>
+            <input type="text" id="zip_code" name="zip_code" class="w3-input w3-round" required><br>
+
+            <label for="phone">Phone:</label><br>
+            <input type="tel" id="phone" name="phone" class="w3-input w3-round" required><br>
+
+            <label for="email">Email:</label><br>
+            <input type="email" id="email" name="email" class="w3-input w3-round" required><br>
+
+            <label for="internship_mentor">Internship Mentor:</label><br>
+            <input type="text" id="internship_mentor" name="internship_mentor" class="w3-input w3-round" required><br>
+
+            <label for="internship_topic">Internship Topic:</label><br>
+            <input type="text" id="internship_topic" name="internship_topic" class="w3-input w3-round" required><br>
         </div>
 
         <input type="submit" value="Add" class="w3-button w3-round w3-margin-top">
     </form>
 </div>
-{%endblock%}
+{% endblock %}

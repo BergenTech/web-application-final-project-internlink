@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 from flask_login import LoginManager, UserMixin
@@ -7,6 +7,7 @@ from flask import Flask, render_template, request, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 import csv
 
 app = Flask(__name__)
@@ -15,7 +16,8 @@ login_manager.login_view = 'login'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'Leo'
-UPLOAD_FOLDER = 'path_to_upload_folder'
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -84,6 +86,8 @@ class Intern(db.Model):
     intern_email = db.Column(db.String(100), nullable=False, unique=True)
     graduation_year = db.Column(db.String(100), nullable=False)
     intern_password = db.Column(db.String(100), nullable=False)
+    major = db.Column(db.String(100))
+    resume = db.Column(db.String(100))
 
     def get_id(self):
         return str(self.id)
@@ -103,28 +107,39 @@ class Intern(db.Model):
     @login_manager.user_loader
     def load_user(user_id):
         return Intern.query.get(int(user_id))
+    
+class DataImportFlag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    def get_id(self):
+        return str(self.id)
 
 with app.app_context():
     db.create_all()
 
 def import_csv_data():
     with app.app_context():
-        with open('static/internships.csv', 'r', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                new_organization = Organization(
-                    company_name=row['COMPANY NAME'],
-                    website=row['WEBSITE'],
-                    street_address=row['STREET ADDRESS'],
-                    city=row['CITY'],
-                    state=row['STATE'],
-                    zip_code=row['ZIP'],
-                    phone=row['PHONE'],
-                    email=row['EMAIL'],
-                    internship_mentor=row['INTERNSHIP MENTOR'],
-                    internship_topic=row['INTERNSHIP TOPIC']
-                )
-                db.session.add(new_organization)
+        if not DataImportFlag.query.first():
+            with open('static/internships.csv', 'r', encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    new_organization = Organization(
+                        company_name=row['COMPANY NAME'],
+                        website=row['WEBSITE'],
+                        street_address=row['STREET ADDRESS'],
+                        city=row['CITY'],
+                        state=row['STATE'],
+                        zip_code=row['ZIP'],
+                        phone=row['PHONE'],
+                        email=row['EMAIL'],
+                        internship_mentor=row['INTERNSHIP MENTOR'],
+                        internship_topic=row['INTERNSHIP TOPIC']
+                    )
+                    db.session.add(new_organization)
+                db.session.commit()
+        
+            data_import_flag = DataImportFlag()
+            db.session.add(data_import_flag)
             db.session.commit()
 
 import_csv_data()
@@ -186,19 +201,36 @@ def register_intern():
 @login_required
 def add_organization():
     if request.method == 'POST':
-        organization_name = request.form['organization_name']
-        org_email = request.form['org_email']
-        topic = request.form['topic']
-        day_hours = request.form['day_hours']
-        paid_unpaid = request.form['paid_unpaid']
-        requirements = request.form['requirements']
+        company_name = request.form['company_name']
+        website = request.form['website']
+        street_address = request.form['street_address']
+        city = request.form['city']
+        state = request.form['state']
+        zip_code = request.form['zip_code']
+        phone = request.form['phone']
+        email = request.form['email']
+        internship_mentor = request.form['internship_mentor']
+        internship_topic = request.form['internship_topic']
 
-        new_organization = Organization(organization_name=organization_name, org_email=org_email, topic=topic, day_hours=day_hours, paid_unpaid=paid_unpaid, requirements=requirements)
+        new_organization = Organization(
+            company_name=company_name,
+            website=website,
+            street_address=street_address,
+            city=city,
+            state=state,
+            zip_code=zip_code,
+            phone=phone,
+            email=email,
+            internship_mentor=internship_mentor,
+            internship_topic=internship_topic
+        )
+
         db.session.add(new_organization)
         db.session.commit()
 
         flash('Organization added successfully!', 'success')
-        return render_template('add_organization.html')
+        return redirect(url_for('add_organization'))
+
     return render_template('add_organization.html')
 
 @app.route('/register/admin', methods=['GET', 'POST'])
@@ -264,8 +296,13 @@ def login():
 
 @app.route("/view_jobs")
 def view_jobs():
-    organizations = Organization.query.all()
+    organizations = Organization.query.order_by(Organization.id.desc()).all()
     return render_template("view_jobs.html", organizations=organizations)
+
+@app.route("/view_interns")
+def view_interns():
+    interns = Intern.query.all()
+    return render_template("view_interns.html", interns=interns)
 
 @app.route("/profile/intern")
 def profile_intern():
@@ -289,22 +326,26 @@ def profile_admin():
         flash('You do not have permission to access this page.', 'error')
         return redirect(url_for('index'))
     
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @app.route('/edit_profile', methods=['POST'])
 def edit_profile():
+    user_id = session['user_id']
     user_type = session.get('user_type')
+    
     if user_type == 'Intern':
-        user = Intern.query.get(session['user_id'])
+        user = Intern.query.get(user_id)
         user.intern_name = request.form.get('intern_name', user.intern_name)
         user.intern_email = request.form.get('intern_email', user.intern_email)
         user.graduation_year = request.form.get('graduation_year', user.graduation_year)
-    elif user_type == 'Organization':
-        user = Organization.query.get(session['user_id'])
-        user.organization_name = request.form.get('organization_name', user.organization_name)
-        user.org_email = request.form.get('org_email', user.org_email)
-        user.topic = request.form.get('topic', user.topic)
-        user.day_hours = request.form.get('day_hours', user.day_hours)
-        user.paid_unpaid = request.form.get('paid_unpaid', user.paid_unpaid)
-        user.requirements = request.form.get('requirements', user.requirements)
+        user.major = request.form.get('major')
+        if 'resume' in request.files:
+            resume_file = request.files['resume']
+            if resume_file and allowed_file(resume_file.filename):
+                filename = secure_filename(resume_file.filename)
+                resume_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                user.resume = filename
     elif user_type == 'Admin':
         user = Admin.query.get(session['user_id'])
         user.admin_name = request.form.get('admin_name', user.admin_name)
@@ -312,6 +353,10 @@ def edit_profile():
     db.session.commit()
     flash('Profile updated successfully!', 'success')
     return redirect(url_for(f'profile_{user_type.lower()}'))
+
+@app.route('/download_resume/<filename>')
+def download_resume(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == "__main__":
     app.run(debug=True)
