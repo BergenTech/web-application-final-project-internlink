@@ -22,6 +22,14 @@
         {% if user_type == 'Intern' %}
         <p><strong>Graduation Year:</strong> {{ user.graduation_year }}</p>
         <p><strong>Major:</strong> {{ user.major }}</p>
+        <p><strong>Claimed Job:</strong>
+            {% if user.claimed_job %}
+                {% set organization = Organization.query.get(user.claimed_job) %}
+                {{ organization.company_name }}
+            {% else %}
+                None
+            {% endif %}
+        </p>
         {% if user.resume %}
         <p><strong>Resume:</strong> <a href="{{ url_for('download_resume', filename=user.resume) }}">{{ user.resume }}</a></p>
         {% endif %}
@@ -40,15 +48,15 @@
             <input type="text" id="graduation_year" name="graduation_year" value="{{ user.graduation_year }}" required class="w3-input w3-round"><br><br>
             <label for="major">Major:</label>
             <select id="major" name="major" class="w3-select w3-round">
-                <option value="Automotive Engineering">Automotive Engineering</option>
-                <option value="Computer Science">Computer Science</option>
-                <option value="Fashion">Fashion</option>
-                <option value="Culinary">Culinary</option>
                 <option value="Aerospace Engineering">Aerospace Engineering</option>
-                <option value="Digital Media">Digital Media</option>
-                <option value="Commercial Art">Commercial Art</option>
-                <option value="Law">Law</option>
+                <option value="Automotive Engineering">Automotive Engineering</option>
                 <option value="Business & Finance">Business & Finance</option>
+                <option value="Commercial Art">Commercial Art</option>
+                <option value="Computer Science">Computer Science</option>
+                <option value="Culinary">Culinary</option>
+                <option value="Digital Media">Digital Media</option>
+                <option value="Fashion">Fashion</option>
+                <option value="Law">Law</option>
             </select>
             <br><br>
             <label for="resume">Resume:</label>

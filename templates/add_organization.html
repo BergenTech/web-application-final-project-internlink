@@ -47,9 +47,60 @@
 
             <label for="internship_topic">Internship Topic:</label><br>
             <input type="text" id="internship_topic" name="internship_topic" class="w3-input w3-round" required><br>
+
+            <label for="majors">Related Majors:</label><br>
+            <div id="majors">
+                <button type="button" class="w3-button w3-round w3-margin-bottom major-button" data-selected="false" data-value="Aerospace Engineering">Aerospace Engineering</button>
+                <button type="button" class="w3-button w3-round w3-margin-bottom major-button" data-selected="false" data-value="Automotive Engineering">Automotive Engineering</button>
+                <button type="button" class="w3-button w3-round w3-margin-bottom major-button" data-selected="false" data-value="Business & Finance">Business & Finance</button>
+                <button type="button" class="w3-button w3-round w3-margin-bottom major-button" data-selected="false" data-value="Commercial Arts">Commercial Arts</button>
+                <button type="button" class="w3-button w3-round w3-margin-bottom major-button" data-selected="false" data-value="Computer Science">Computer Science</button>
+                <button type="button" class="w3-button w3-round w3-margin-bottom major-button" data-selected="false" data-value="Culinary">Culinary</button>
+                <button type="button" class="w3-button w3-round w3-margin-bottom major-button" data-selected="false" data-value="Digital Media">Digital Media</button>
+                <button type="button" class="w3-button w3-round w3-margin-bottom major-button" data-selected="false" data-value="Fashion">Fashion</button>
+                <button type="button" class="w3-button w3-round w3-margin-bottom major-button" data-selected="false" data-value="Law">Law</button>
+                <button type="button" class="w3-button w3-round w3-margin-bottom major-button" data-selected="false" data-value="Medical">Medical</button>
+                <button type="button" class="w3-button w3-round w3-margin-bottom major-button" data-selected="false" data-value="Research/Other">Research/Other</button>
+            </div>
+            <input type="hidden" id="selected_majors" name="selected_majors">
         </div>
 
         <input type="submit" value="Add" class="w3-button w3-round w3-margin-top">
     </form>
 </div>
+
+<style>
+    .major-button {
+        background-color: #ffffff;
+        color: #000000;
+    }
+
+    .major-button.selected {
+        background-color: #808080;
+        color: #ffffff;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const majorButtons = document.querySelectorAll(".major-button");
+        const selectedMajorsInput = document.getElementById('selected_majors');
+
+        majorButtons.forEach(button => {
+            button.addEventListener("click", function () {
+                const isSelected = button.getAttribute("data-selected") === "true";
+                button.setAttribute("data-selected", isSelected ? "false" : "true");
+                button.classList.toggle("selected");
+                updateSelectedMajors();
+            });
+        });
+
+        function updateSelectedMajors() {
+            const selectedMajors = Array.from(majorButtons)
+                .filter(button => button.getAttribute("data-selected") === "true")
+                .map(button => button.getAttribute("data-value"));
+            selectedMajorsInput.value = selectedMajors.join(',');
+        }
+    });
+</script>
 {% endblock %}
