@@ -51,6 +51,7 @@
                     <p>Email: <a href="mailto:{{ organization.email }}">{{ organization.email }}</a></p>
                     <p>Internship Mentor: {{ organization.internship_mentor }}</p>
                     <p>Internship Topic: {{ organization.internship_topic }}</p>
+                    <p>Related Major(s): {{ organization.major }}</p>
                 </div>
                 <div class="job-actions" style="display: flex; flex-direction: column; align-items: center;">
                     {% if session.get('user_type') == 'Admin' %}
@@ -116,8 +117,9 @@
             var organizationName = card.querySelector('.job-info h3').textContent.toLowerCase();
             var topic = card.querySelector('.job-info p:nth-child(6)').textContent.replace('Internship Topic: ', '').toLowerCase();
             var relatedMajors = card.querySelector('.job-info p:last-child').textContent.replace('Related Major(s): ', '').toLowerCase();
+            var majorsArray = relatedMajors.split(', ');
             
-            if ((selectedMajor === '' || relatedMajors.includes(selectedMajor.toLowerCase())) &&
+            if ((selectedMajor === '' || majorsArray.includes(selectedMajor.toLowerCase())) &&
                 (searchKeyword === '' || organizationName.includes(searchKeyword) || topic.includes(searchKeyword))) {
                 card.style.display = 'flex';
             } else {

@@ -38,6 +38,7 @@ class Admin(db.Model, UserMixin):
     admin_name = db.Column(db.String(100), nullable=False)
     admin_email = db.Column(db.String(100), nullable=False, unique=True)
     admin_password = db.Column(db.String(100), nullable=False)
+    registration_verified = db.Column(db.Boolean, default=False)
 
     def get_id(self):
         return str(self.id)
@@ -221,24 +222,6 @@ def send_message():
         flash('Invalid request!', 'error')
         return redirect(url_for('view_interns'))
 
-@app.route('/contact')
-def contact():
-    pass
-
-@app.route('/messages')
-def messages():
-    organization_messages = [
-        {"from": "Organization Name 1", "message": "Sample message from Organization 1."},
-        {"from": "Organization Name 2", "message": "Sample message from Organization 2."}
-    ]
-
-    intern_messages = [
-        {"from": "Intern Name 1", "message": "Sample message from Intern 1."},
-        {"from": "Intern Name 2", "message": "Sample message from Intern 2."}
-    ]
-
-    return render_template('messages.html', organization_messages=organization_messages, intern_messages=intern_messages)
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     return render_template('register.html')
@@ -251,6 +234,10 @@ def register_intern():
         graduation_year = request.form['graduation_year']
         intern_password = request.form['intern_password']
         intern_confirm_password = request.form['intern_confirm_password']
+
+        if not intern_email.endswith('@bergen.org'):
+            flash('Only email addresses ending with @bergen.org are allowed to register.', 'error')
+            return redirect(url_for('register_intern'))
 
         if intern_password != intern_confirm_password:
             flash('Passwords do not match!', 'error')
@@ -317,10 +304,32 @@ def register_admin():
         db.session.add(new_admin)
         db.session.commit()
 
-        flash('Admin registered successfully!', 'success')
+        token = serializer.dumps(admin_email, salt='admin-registration')
+        verification_url = url_for('verify_admin_registration', token=token, _external=True)
+        message = f'Hello, {admin_email} has registered as an Admin to the InternLink website. ' \
+                  f'Click the following link to complete the registration: {verification_url}\n\nBest Regards,\nInternLink'
+        send_email('andbuc@bergen.org', 'Admin Registration Verification', message)
+
+        flash('Admin registration pending. Email verification sent to Mrs. Buccino.', 'success')
         return redirect(url_for('login'))
 
     return render_template('register_admin.html')
+
+@app.route('/verify_admin_registration/<token>', methods=['GET'])
+def verify_admin_registration(token):
+    try:
+        admin_email = serializer.loads(token, salt='admin-registration', max_age=3600)
+        admin = Admin.query.filter_by(admin_email=admin_email).first()
+        if admin:
+            admin.registration_verified = True
+            db.session.commit()
+            flash('Admin registration verified successfully!', 'success')
+        else:
+            flash('Invalid verification link.', 'error')
+    except:
+        flash('The verification link is invalid or has expired.', 'error')
+    
+    return redirect(url_for('login'))
 
 @app.route('/add_organization', methods=['GET', 'POST'])
 @login_required
@@ -394,11 +403,14 @@ def login():
 
         admin_user = Admin.query.filter_by(admin_email=email).first()
         if admin_user and check_password_hash(admin_user.admin_password, password):
-            session['user_id'] = admin_user.id
-            session['user_type'] = 'Admin'
-            login_user(admin_user)
-            flash('Logged in successfully!', 'success')
-            return redirect(url_for('profile_admin'))
+            if admin_user.registration_verified:
+                session['user_id'] = admin_user.id
+                session['user_type'] = 'Admin'
+                login_user(admin_user)
+                flash('Logged in successfully!', 'success')
+                return redirect(url_for('profile_admin'))
+            else:
+                flash('The account has not been approved by the Admin yet. Please wait or contact Mrs. Buccino.', 'error')
 
         flash('Invalid email or password. Please try again.', 'error')
         return redirect(url_for('login'))
