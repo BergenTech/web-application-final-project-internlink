@@ -64,14 +64,14 @@
                         <form method="post" action="{{ url_for('claim_job', organization_id=organization.id) }}" class="claim-form">
                             <button class="w3-button w3-round-large claim-btn" style="margin-bottom: 10px;">Claim</button>
                         </form>
-                        <button class="w3-button w3-black w3-round-large contact-btn" data-email="{{ organization.email }}">Contact</button>
+                        <!-- <button class="w3-button w3-black w3-round-large contact-btn" data-email="{{ organization.email }}">Contact</button>
                         <form class="message-form" style="display: none; width: 80%;">
                             <input type="hidden" name="from_email" value="{{ current_user.intern_email }}">
                             <input type="hidden" name="to_email" value="{{ organization.email }}">
                             <input type="text" name="subject" placeholder="Subject" class="w3-input w3-round" style="margin-bottom: 10px; width: 100%;">
                             <textarea class="w3-round" name="message" placeholder="Type your message here." style="width: 100%; min-height: 100px; resize: none; margin-bottom: 10px;"></textarea>
                             <button type="submit" class="w3-button w3-round w3-grey w3-small">Send</button>
-                        </form>
+                        </form> -->
                     {% endif %}
                 </div>
             </div>           
