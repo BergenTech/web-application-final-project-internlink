@@ -308,7 +308,7 @@ def register_admin():
         verification_url = url_for('verify_admin_registration', token=token, _external=True)
         message = f'Hello, {admin_email} has registered as an Admin to the InternLink website. ' \
                   f'Click the following link to complete the registration: {verification_url}\n\nBest Regards,\nInternLink'
-        send_email('leolan25@bergen.org', 'Admin Registration Verification', message)
+        send_email('andbuc@bergen.org', 'Admin Registration Verification', message)
 
         flash('Admin registration pending. Email verification sent to Mrs. Buccino.', 'success')
         return redirect(url_for('login'))
@@ -418,11 +418,13 @@ def login():
     return render_template('login.html')
 
 @app.route("/view_jobs")
+@login_required
 def view_jobs():
     organizations = Organization.query.order_by(Organization.id.desc()).all()
     return render_template("view_jobs.html", organizations=organizations)
 
 @app.route("/view_interns")
+@login_required
 def view_interns():
     interns = Intern.query.all()
     organization = Organization
@@ -476,6 +478,7 @@ def edit_profile():
         user = Admin.query.get(session['user_id'])
         user.admin_name = request.form.get('admin_name', user.admin_name)
         user.admin_email = request.form.get('admin_email', user.admin_email)
+        user.admin_password = request.form.get('admin_password', user.admin_password)
     db.session.commit()
     flash('Profile updated successfully!', 'success')
     return redirect(url_for(f'profile_{user_type.lower()}'))
