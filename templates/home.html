@@ -2,6 +2,39 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
+<style>
+    .slideshow {
+        animation: slide 1s forwards;
+        opacity: 0;
+        transform: translateY(-100%);
+    }
+
+    .fade-in {
+        animation: fadeInImage 1s forwards;
+        opacity: 0;
+    }
+
+    @keyframes slide {
+        0% {
+            opacity: 0;
+            transform: translateY(-100%);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInImage {
+        0% {
+            opacity: 0;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+</style>
+
 <div class="w3-container w3-content" style="max-width: 800px; margin-top: 80px; text-align: center;">
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -14,9 +47,10 @@
         </div>
     {% endif %}
     {% endwith %}
+
     <div>
         {% if current_user.is_authenticated %}
-            <h2>Hello, <strong>{% if session.get('user_type') == 'Intern' %} {{ user.intern_name }} {% else %} {{ user.admin_name }} {% endif %}</strong></h2>
+            <h2 class="slideshow">Hello, <strong>{% if session.get('user_type') == 'Intern' %} {{ user.intern_name }} {% else %} {{ user.admin_name }} {% endif %}</strong></h2>
         {% else %}
             <h2>Welcome To InternLink</h2>
             <p>Connecting Futures, Bridging Opportunities</p>
@@ -35,13 +69,13 @@
                 <a href="{{ url_for('view_jobs') }}" class="w3-button w3-padding-large w3-round-large">View Internships</a>
             {% endif %}
         {% else %}
-            <a href="{{ url_for('register') }}" class="w3-button w3-black w3-padding-large w3-round-large">Register</a>
+            <a href="{{ url_for('register_intern') }}" class="w3-button w3-black w3-padding-large w3-round-large">Register</a>
             <a href="{{ url_for('login') }}" class="w3-button w3-grey w3-padding-large w3-round-large">Login</a>
         {% endif %}
     </div>
 
     <div style="margin-top: 35px;">
-        <img src="{{ url_for('static', filename='home_page.png') }}" alt="Your Picture" class="w3-round" style="width: 500px; height: 500px;">
+        <img src="{{ url_for('static', filename='home_page.png') }}" alt="Your Picture" class="w3-round fade-in" style="width: 500px; height: 500px; border-radius: 10px;">
     </div>
 </div>
-{%endblock%}
+{% endblock %}

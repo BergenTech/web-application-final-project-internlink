@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Two-Factor Authentication{% endblock %}
+
+{% block content %}
+<div class="w3-container w3-content" style="max-width: 800px; margin-top: 80px; text-align: center;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flashed-messages">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+    <h2>Admin Authentication</h2>
+    <br>
+    <form method="POST" action="{{ url_for('two_factor_auth') }}">
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password" class="w3-input w3-round" style="margin-bottom: 10px;"><br>
+        <input type="submit" value="Authenticate" class="w3-button w3-round w3-grey">
+    </form>
+</div>
+{% endblock %}

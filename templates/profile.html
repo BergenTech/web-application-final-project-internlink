@@ -32,11 +32,15 @@
         </p>
         {% if user.resume %}
         <p><strong>Resume:</strong> <a href="{{ url_for('download_resume', filename=user.resume) }}">{{ user.resume }}</a></p>
+        <form action="{{ url_for('remove_resume') }}" method="post">
+            <input type="hidden" name="user_id" value="{{ user.id }}">
+            <input type="submit" value="Remove Resume" class="w3-button w3-round w3-red w3-small">
+        </form>
         {% endif %}
         {% endif %}
     </div>
     
-    <button onclick="toggleEditForm()" class="w3-button w3-round w3-grey w3-small" style="margin-left: 20px;">Edit</button>
+    <button onclick="toggleEditForm()" class="w3-button w3-round w3-grey w3-small" style="margin-left: 20px;">Edit/Add Resume</button>
     
     <form id="editForm" action="{{ url_for('edit_profile') }}" method="post" enctype="multipart/form-data" style="display: none; width: 40%; float: right;" enctype="multipart/form-data">
         {% if user_type == 'Intern' %}
@@ -47,7 +51,7 @@
             <label for="graduation_year">Graduation Year:</label>
             <input type="text" id="graduation_year" name="graduation_year" value="{{ user.graduation_year }}" required class="w3-input w3-round"><br><br>
             <label for="major">Major:</label>
-            <select id="major" name="major" class="w3-select w3-round">
+            <select id="major" name="major" value="{{ user.major }}" class="w3-select w3-round">
                 <option value="Aerospace Engineering">Aerospace Engineering</option>
                 <option value="Automotive Engineering">Automotive Engineering</option>
                 <option value="Business & Finance">Business & Finance</option>
@@ -60,8 +64,8 @@
             </select>
             <br><br>
             <label for="resume">Resume:</label>
-            <input type="file" id="resume" name="resume" class="w3-input w3-round"><br>
-        {% elif user_type == 'Admin' %}
+            <input type="file" id="resume" name="resume" value="{{ user.resume }}" class="w3-input w3-round"><br>
+        {% elif user_type == 'Admin' %} 
             <label for="admin_name">Admin Name:</label>
             <input type="text" id="admin_name" name="admin_name" value="{{ user.admin_name }}" required class="w3-input w3-round"><br>
             <label for="admin_email">Email:</label>

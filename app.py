@@ -22,9 +22,9 @@ app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USERNAME'] = 'emregemici@gmail.com'
-app.config['MAIL_PASSWORD'] = 'cxke ztxi bhac vqim'  
-app.config['MAIL_DEFAULT_SENDER'] = 'emregemici@gmail.com'
+app.config['MAIL_USERNAME'] = 'internlinkbt@gmail.com'
+app.config['MAIL_PASSWORD'] = 'hldc xffp nbxx vnwm'  
+app.config['MAIL_DEFAULT_SENDER'] = 'internlinkbt@gmail.com'
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
@@ -98,7 +98,7 @@ class Intern(db.Model, UserMixin):
     intern_email = db.Column(db.String(100), nullable=False, unique=True)
     graduation_year = db.Column(db.String(100), nullable=False)
     intern_password = db.Column(db.String(100), nullable=False)
-    major = db.Column(db.String(100))
+    major = db.Column(db.String(100), nullable=False)
     resume = db.Column(db.String(100))
     email_verified = db.Column(db.Boolean, default=False)
     claimed_job = db.Column(db.Integer, db.ForeignKey('organization.id'))
@@ -234,6 +234,7 @@ def register_intern():
         graduation_year = request.form['graduation_year']
         intern_password = request.form['intern_password']
         intern_confirm_password = request.form['intern_confirm_password']
+        major = request.form['major']
 
         if not intern_email.endswith('@bergen.org'):
             flash('Only email addresses ending with @bergen.org are allowed to register.', 'error')
@@ -250,7 +251,7 @@ def register_intern():
             flash('An account with this email already exists. Please use a different email.', 'error')
             return redirect(url_for('register_intern'))
 
-        new_intern = Intern(intern_name=intern_name, intern_email=intern_email, graduation_year=graduation_year, intern_password=hashed_password)
+        new_intern = Intern(intern_name=intern_name, intern_email=intern_email, graduation_year=graduation_year, intern_password=hashed_password, major=major)
         db.session.add(new_intern)
 
         try:
@@ -308,7 +309,7 @@ def register_admin():
         verification_url = url_for('verify_admin_registration', token=token, _external=True)
         message = f'Hello, {admin_email} has registered as an Admin to the InternLink website. ' \
                   f'Click the following link to complete the registration: {verification_url}\n\nBest Regards,\nInternLink'
-        send_email('andbuc@bergen.org', 'Admin Registration Verification', message)
+        send_email('leolan25@bergen.org', 'Admin Registration Verification', message)
 
         flash('Admin registration pending. Email verification sent to Mrs. Buccino.', 'success')
         return redirect(url_for('login'))
@@ -334,41 +335,45 @@ def verify_admin_registration(token):
 @app.route('/add_organization', methods=['GET', 'POST'])
 @login_required
 def add_organization():
-    if request.method == 'POST':
-        company_name = request.form['company_name']
-        website = request.form['website']
-        street_address = request.form['street_address']
-        city = request.form['city']
-        state = request.form['state']
-        zip_code = request.form['zip_code']
-        phone = request.form['phone']
-        email = request.form['email']
-        internship_mentor = request.form['internship_mentor']
-        internship_topic = request.form['internship_topic']
-        majors = request.form.getlist('selected_majors')
-        major_string=', '.join(majors)
+    if current_user.is_authenticated and session['user_type'] == 'Admin':
+        if request.method == 'POST':
+            company_name = request.form['company_name']
+            website = request.form['website']
+            street_address = request.form['street_address']
+            city = request.form['city']
+            state = request.form['state']
+            zip_code = request.form['zip_code']
+            phone = request.form['phone']
+            email = request.form['email']
+            internship_mentor = request.form['internship_mentor']
+            internship_topic = request.form['internship_topic']
+            majors = request.form.getlist('selected_majors')
+            major_string=', '.join(majors)
 
-        new_organization = Organization(
-            company_name=company_name,
-            website=website,
-            street_address=street_address,
-            city=city,
-            state=state,
-            zip_code=zip_code,
-            phone=phone,
-            email=email,
-            internship_mentor=internship_mentor,
-            internship_topic=internship_topic,
-            major=major_string
-        )
+            new_organization = Organization(
+                company_name=company_name,
+                website=website,
+                street_address=street_address,
+                city=city,
+                state=state,
+                zip_code=zip_code,
+                phone=phone,
+                email=email,
+                internship_mentor=internship_mentor,
+                internship_topic=internship_topic,
+                major=major_string
+            )
 
-        db.session.add(new_organization)
-        db.session.commit()
+            db.session.add(new_organization)
+            db.session.commit()
 
-        flash('Organization added successfully!', 'success')
-        return redirect(url_for('add_organization'))
+            flash('Organization added successfully!', 'success')
+            return redirect(url_for('add_organization'))
 
-    return render_template('add_organization.html')
+        return render_template('add_organization.html')
+    else:
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
 
 @app.route("/")
 def index():
@@ -423,16 +428,40 @@ def view_jobs():
     organizations = Organization.query.order_by(Organization.id.desc()).all()
     return render_template("view_jobs.html", organizations=organizations)
 
-@app.route("/view_interns")
+@app.before_request
+def require_two_factor_auth():
+    if request.path in ['/view_interns', '/add_organization']:
+        if 'authenticated' not in session:
+            return redirect(url_for('two_factor_auth'))
+
+@app.route('/view_interns', methods=['GET', 'POST'])
 @login_required
 def view_interns():
-    interns = Intern.query.all()
-    organization = Organization
-    return render_template("view_interns.html", interns=interns, Organization=organization)
+    if current_user.is_authenticated and session['user_type'] == 'Admin':
+        view_option = request.form.get('view_option', 'cards')
+        interns = Intern.query.all()
+        organization = Organization
+        return render_template("view_interns.html", view_option=view_option, interns=interns, Organization=organization)
+    else:
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
+@app.route("/two_factor_auth", methods=['GET', 'POST'])
+def two_factor_auth():
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == '12345':
+            session['authenticated'] = True
+            flash('Successfully two-factor authenticated!', 'success')
+            return redirect(url_for('index'))
+        else:
+            flash('Incorrect password. Please try again.', 'error')
+    
+    return render_template('two_factor_auth.html')
 
 @app.route("/profile/intern")
 def profile_intern():
-    if session.get('user_id') and session.get('user_type') == 'Intern':
+    if session.get('user_id') and session.get('user_type') == 'Intern' and current_user.is_authenticated:
         user_id = session['user_id']
         intern = Intern.query.get(user_id)
         organization = Organization
@@ -444,7 +473,7 @@ def profile_intern():
     
 @app.route("/profile/admin")
 def profile_admin():
-    if session.get('user_id') and session.get('user_type') == 'Admin':
+    if session.get('user_id') and session.get('user_type') == 'Admin' and current_user.is_authenticated:
         user_id = session['user_id']
         admin = Admin.query.get(user_id)
         login_user(admin)
@@ -467,7 +496,7 @@ def edit_profile():
         user.intern_email = request.form.get('intern_email', user.intern_email)
         user.graduation_year = request.form.get('graduation_year', user.graduation_year)
         user.major = request.form.get('major')
-        user.claimed_job = request.form.get('claimed_job')
+        user.claimed_job = user.claimed_job
         if 'resume' in request.files:
             resume_file = request.files['resume']
             if resume_file and allowed_file(resume_file.filename):
@@ -485,6 +514,20 @@ def edit_profile():
     flash('Profile updated successfully!', 'success')
     return redirect(url_for(f'profile_{user_type.lower()}'))
 
+@app.route('/remove_resume', methods=['POST'])
+def remove_resume():
+    user_id = request.form.get('user_id')
+    user_type = session.get('user_type')
+    
+    if user_type == 'Intern':
+        user = Intern.query.get(user_id)
+        user.resume = None
+    elif user_type == 'Admin':
+        pass
+    
+    db.session.commit()
+    flash('Resume removed successfully!', 'success')
+    return redirect(url_for(f'profile_{user_type.lower()}'))
 
 @app.route('/edit_interns/<int:intern_id>', methods=['GET', 'POST'])
 def edit_interns(intern_id):
