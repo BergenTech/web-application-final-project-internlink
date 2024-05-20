@@ -50,19 +50,6 @@
             <input type="email" id="intern_email" name="intern_email" value="{{ user.intern_email }}" required class="w3-input w3-round"><br>
             <label for="graduation_year">Graduation Year:</label>
             <input type="text" id="graduation_year" name="graduation_year" value="{{ user.graduation_year }}" required class="w3-input w3-round"><br><br>
-            <label for="major">Major:</label>
-            <select id="major" name="major" value="{{ user.major }}" class="w3-select w3-round">
-                <option value="Aerospace Engineering">Aerospace Engineering</option>
-                <option value="Automotive Engineering">Automotive Engineering</option>
-                <option value="Business & Finance">Business & Finance</option>
-                <option value="Commercial Art">Commercial Art</option>
-                <option value="Computer Science">Computer Science</option>
-                <option value="Culinary">Culinary</option>
-                <option value="Digital Media">Digital Media</option>
-                <option value="Fashion">Fashion</option>
-                <option value="Law">Law</option>
-            </select>
-            <br><br>
             <label for="resume">Resume:</label>
             <input type="file" id="resume" name="resume" value="{{ user.resume }}" class="w3-input w3-round"><br>
         {% elif user_type == 'Admin' %} 

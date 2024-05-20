@@ -14,17 +14,27 @@
         </div>
     {% endif %}
     {% endwith %}
+
     <h2 style="text-align: center;">Internships</h2>
+
+    <div class="view-options" style="margin-bottom: 20px;">
+        <form action="{{ url_for('view_jobs') }}" method="post">
+            <input type="radio" id="cards" name="view_option" value="cards" {% if view_option == 'cards' %}checked{% endif %} onchange="this.form.submit()">
+            <label for="cards">Cards</label>
+            <input type="radio" id="table" name="view_option" value="table" {% if view_option == 'table' %}checked{% endif %} onchange="this.form.submit()">
+            <label for="table">Table</label>
+        </form>
+    </div>
 
     <div class="filter-container" style="margin-bottom: 20px;">
         <div class="filter-options" style="display: flex; align-items: center;">
             <label for="major-filter">Filter By Major:</label>
-            <select id="major-filter" style="width: 200px; margin-right: 20px; border-radius: 5px;">
+            <select id="major-filter" style="width: 200px; margin-right: 20px; border-radius: 5px;" onchange="applyFilters()">
                 <option value="">All</option>
                 <option value="Aerospace Engineering">Aerospace Engineering</option>
                 <option value="Automotive Engineering">Automotive Engineering</option>
                 <option value="Business & Finance">Business & Finance</option>
-                <option value="Commercial Art">Commercial Art</option>
+                <option value="Commercial Arts">Commercial Arts</option>
                 <option value="Computer Science">Computer Science</option>
                 <option value="Culinary">Culinary</option>
                 <option value="Digital Media">Digital Media</option>
@@ -34,55 +44,111 @@
                 <option value="Research/Other">Research/Other</option>
             </select>
         </div>
-        <div class="search-container" style="text-align: right; margin-top: 20px;">
-            <label for="search-input">Search:</label>
-            <input type="text" id="search-input" style="width: 200px; border-radius: 5px;">
-        </div>
     </div>
 
-    <div class="job-container">
-        {% for organization in organizations %}
-            <div class="job-card" style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-bottom: 20px; display: flex;">
-                <div class="job-info" style="flex: 1;">
-                    <h3>{{ organization.company_name }}</h3>
-                    <p>Website: <a href="{{ organization.website }}" target="_blank">{{ organization.website }}</a></p>
-                    <p>Address: {{ organization.street_address }}, {{ organization.city }}, {{ organization.state }}, {{ organization.zip_code }}</p>
-                    <p>Phone: {{ organization.phone }}</p>
-                    <p>Email: <a href="mailto:{{ organization.email }}">{{ organization.email }}</a></p>
-                    <p>Internship Mentor: {{ organization.internship_mentor }}</p>
-                    <p>Internship Topic: {{ organization.internship_topic }}</p>
-                    <p>Related Major(s): {{ organization.major }}</p>
-                </div>
-                <div class="job-actions" style="display: flex; flex-direction: column; align-items: center;">
-                    {% if session.get('user_type') == 'Admin' %}
-                        {% if current_user.is_authenticated %}
-                            <form method="post" action="{{ url_for('delete_organization', organization_id=organization.id) }}">
-                                <button class="w3-button w3-red w3-round-large" style="margin-bottom: 10px;">Delete Organization</button>
+    {% if view_option == 'cards' %}
+        <div class="job-container">
+            {% for organization in organizations %}
+                <div class="job-card" style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-bottom: 20px; display: flex;">
+                    <div class="job-info" style="flex: 1;">
+                        <h3>{{ organization.company_name }}</h3>
+                        <p>Website: <a href="{{ organization.website }}" target="_blank">{{ organization.website }}</a></p>
+                        <p>Address: {{ organization.street_address }}, {{ organization.city }}, {{ organization.state }}, {{ organization.zip_code }}</p>
+                        <p>Phone: {{ organization.phone }}</p>
+                        <p>Email: <a href="mailto:{{ organization.email }}">{{ organization.email }}</a></p>
+                        <p>Internship Mentor: {{ organization.internship_mentor }}</p>
+                        <p>Internship Topic: {{ organization.internship_topic }}</p>
+                        <p>Related Major(s): {{ organization.major }}</p>
+                    </div>
+                    <div class="job-actions" style="display: flex; flex-direction: column; align-items: center;">
+                        {% if session.get('user_type') == 'Admin' %}
+                            {% if current_user.is_authenticated %}
+                                <form method="post" action="{{ url_for('delete_organization', organization_id=organization.id) }}">
+                                    <button class="w3-button w3-red w3-round-large" style="margin-bottom: 10px;">Delete Organization</button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            <form method="post" action="{{ url_for('claim_job', organization_id=organization.id) }}" class="claim-form">
+                                <button class="w3-button w3-round-large claim-btn" style="margin-bottom: 10px;" onclick="confirmClaim(event)">Claim</button>
                             </form>
                         {% endif %}
-                    {% else %}
-                        <form method="post" action="{{ url_for('claim_job', organization_id=organization.id) }}" class="claim-form">
-                            <button class="w3-button w3-round-large claim-btn" style="margin-bottom: 10px;">Claim</button>
-                        </form>
-                        <!-- <button class="w3-button w3-black w3-round-large contact-btn" data-email="{{ organization.email }}">Contact</button>
-                        <form class="message-form" style="display: none; width: 80%;">
-                            <input type="hidden" name="from_email" value="{{ current_user.intern_email }}">
-                            <input type="hidden" name="to_email" value="{{ organization.email }}">
-                            <input type="text" name="subject" placeholder="Subject" class="w3-input w3-round" style="margin-bottom: 10px; width: 100%;">
-                            <textarea class="w3-round" name="message" placeholder="Type your message here." style="width: 100%; min-height: 100px; resize: none; margin-bottom: 10px;"></textarea>
-                            <button type="submit" class="w3-button w3-round w3-grey w3-small">Send</button>
-                        </form> -->
-                    {% endif %}
-                </div>
-            </div>           
-        {% endfor %}
-    </div>
+                    </div>
+                </div>           
+            {% endfor %}
+        </div>
+        
+    {% else %}
+        <div class="table-container">
+            <table class="w3-table-all w3-card-4 w3-round">
+                <thead>
+                    <tr>
+                        <th>Company Name</th>
+                        <th>Website</th>
+                        <th>Address</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Internship Mentor</th>
+                        <th>Internship Topic</th>
+                        <th>Related Major(s)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for organization in organizations %}
+                    <tr class="organization-row">
+                        <td class="company-name">{{ organization.company_name }}</td>
+                        <td class="website"><a href="{{ organization.website }}" target="_blank">{{ organization.website }}</a></td>
+                        <td class="address">{{ organization.street_address }}, {{ organization.city }}, {{ organization.state }}, {{ organization.zip_code }}</td>
+                        <td class="phone">{{ organization.phone }}</td>
+                        <td class="email"><a href="mailto:{{ organization.email }}">{{ organization.email }}</a></td>
+                        <td class="mentor">{{ organization.internship_mentor }}</td>
+                        <td class="topic">{{ organization.internship_topic }}</td>
+                        <td class="majors">{{ organization.major }}</td>
+                        <td>
+                            {% if session.get('user_type') == 'Admin' %}
+                                {% if current_user.is_authenticated %}
+                                    <form method="post" action="{{ url_for('delete_organization', organization_id=organization.id) }}">
+                                        <button class="w3-button w3-red w3-small w3-round-large" style="margin-bottom: 10px;">X</button>
+                                    </form>
+                                {% endif %}
+                            {% else %}
+                                <form method="post" action="{{ url_for('claim_job', organization_id=organization.id) }}" class="claim-form">
+                                    <button class="w3-button w3-small w3-round-large claim-btn" style="margin-bottom: 10px;" onclick="confirmClaim(event)">+</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
 
+    <!-- Pagination Controls -->
+    <div class="pagination-controls" style="margin-top: 20px; text-align: center;">
+        <ul class="pagination">
+            {% if pagination.has_prev %}
+                <li class="page-item"><a class="page-link" href="{{ url_for('view_jobs', page=pagination.prev_num, major=major_filter, view_option=view_option) }}">Previous</a></li>
+            {% endif %}
+            {% for page_num in pagination.iter_pages() %}
+                {% if page_num %}
+                    <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('view_jobs', page=page_num, major=major_filter, view_option=view_option) }}">{{ page_num }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}
+                <li class="page-item"><a class="page-link" href="{{ url_for('view_jobs', page=pagination.next_num, major=major_filter, view_option=view_option) }}">Next</a></li>
+            {% endif %}
+        </ul>
+    </div>
 </div>
 
 <style>
-    .contact-btn {
-        margin-bottom: 10px;
+    .job-container {
+        margin-top: 20px;
     }
 
     .job-card {
@@ -102,48 +168,130 @@
         flex-direction: column;
         align-items: center;
     }
+
+    .table-container {
+        margin-top: 20px;
+        overflow-x: auto;
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+        max-width: 200px;
+        word-wrap: break-word;
+    }
+
+    th {
+        background-color: #000;
+        color: white;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    tr:hover {
+        background-color: #ddd;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .page-item {
+        margin: 0 5px;
+    }
+
+    .page-link {
+        display: block;
+        padding: 8px 16px;
+        color: rgb(192, 163, 4);
+        text-decoration: none;
+    }
+
+    .page-item.active .page-link {
+        background-color: rgb(192, 163, 4);
+        color: white;
+        border-radius: 5px;
+    }
+
+    .page-item.disabled .page-link {
+        color: #6c757d;
+    }
+
+    @media screen and (max-width: 600px) {
+        table {
+            width: 100%;
+        }
+
+        th, td {
+            display: block;
+            width: 100%;
+        }
+    }
 </style>
 
 <script>
-    document.getElementById('major-filter').addEventListener('change', applyFilters);
-    document.getElementById('search-input').addEventListener('input', applyFilters);
-    
+    function handlePagination(pageNum) {
+        var majorFilter = document.getElementById('major-filter').value;
+        var url = "{{ url_for('view_jobs') }}" + `?page=${pageNum}&major=${majorFilter}`;
+        window.location.href = url;
+    }
+
+    function confirmClaim(event) {
+        var confirmation = confirm("Only claim this job if this is your confirmed senior internship.");
+        if (confirmation) {
+            document.querySelector('.claim-form').submit();
+        } else {
+            event.preventDefault();
+            alert("Not Selected")
+        }
+    }
+
     function applyFilters() {
-        var selectedMajor = document.getElementById('major-filter').value;
-        var searchKeyword = document.getElementById('search-input').value.toLowerCase();
-        var jobCards = document.querySelectorAll('.job-card');
-        
-        jobCards.forEach(function(card) {
-            var organizationName = card.querySelector('.job-info h3').textContent.toLowerCase();
-            var topic = card.querySelector('.job-info p:nth-child(6)').textContent.replace('Internship Topic: ', '').toLowerCase();
-            var relatedMajors = card.querySelector('.job-info p:last-child').textContent.replace('Related Major(s): ', '').toLowerCase();
-            var majorsArray = relatedMajors.split(', ');
-            
-            if ((selectedMajor === '' || majorsArray.includes(selectedMajor.toLowerCase())) &&
-                (searchKeyword === '' || organizationName.includes(searchKeyword) || topic.includes(searchKeyword))) {
+        var selectedMajor = document.getElementById('major-filter').value.toLowerCase();
+        var viewOption = document.querySelector('input[name="view_option"]:checked').value;
+
+        // For Card View
+        var cards = document.querySelectorAll('.job-card');
+        cards.forEach(function(card) {
+            var majors = card.querySelector('.job-info p:last-child').textContent.replace('Related Major(s): ', '').toLowerCase();
+            if (selectedMajor === '' || majors.includes(selectedMajor)) {
                 card.style.display = 'flex';
             } else {
                 card.style.display = 'none';
             }
         });
-    }
-    
-    document.querySelectorAll('.claim-btn').forEach(function(button) {
-        button.addEventListener('click', function(event) {
-            event.preventDefault();
-            var confirmation = confirm("Are you sure this is your future/current BT internship?");
-            if (confirmation) {
-                var form = this.closest('.claim-form');
-                form.submit();
+
+        // For Table View
+        var rows = document.querySelectorAll('.organization-row');
+        rows.forEach(function(row) {
+            var majors = row.querySelector('.majors').textContent.toLowerCase();
+
+            if (selectedMajor === '' || majors.includes(selectedMajor)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
             }
         });
-    });
 
-    document.querySelectorAll('.contact-btn').forEach(function(button) {
-        button.addEventListener('click', function() {
-            var form = this.nextElementSibling;
-            form.style.display = form.style.display === 'none' ? 'block' : 'none';
-        });
+        var form = document.querySelector('.view-options form');
+        form.querySelector('input[name="view_option"]').value = viewOption;
+        form.submit();
+    }
+
+    document.getElementById('major-filter').addEventListener('change', function() {
+        applyFilters();
+        handlePagination(1); 
     });
 </script>
 {% endblock %}

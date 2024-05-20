@@ -92,12 +92,8 @@
                                 <option value="Law">Law</option>
                             </select>
                             <br><br>
-                            {% if intern.resume %}
-                                <label for="resume">Resume:</label>
-                                <a href="{{ url_for('download_resume', filename=intern.resume) }}">{{ intern.resume }}</a>
-                                <br><br>
-                            {% endif %}
-                            <input type="file" id="resume" name="resume" class="w3-input w3-round"><br>
+                            <label for="resume">Resume:</label>
+                            <input type="file" id="resume" name="resume" value="{{ intern.resume }}" class="w3-input w3-round"><br>
                             <button type="submit" class="w3-button w3-round w3-grey w3-small">Save Changes</button>
                             <button type="submit" name="delete_claimed_job" class="w3-button w3-round w3-small" style="margin-left: 10px;">Delete Claimed Job</button>
                         </form>

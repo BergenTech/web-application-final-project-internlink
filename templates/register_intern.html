@@ -20,19 +20,23 @@
         <div class="input-container">
             <label for="intern_name">Full Name:</label><br>
             <input type="text" id="intern_name" name="intern_name" class="w3-input w3-round" required><br>
-
+    
             <label for="intern_email">Email:</label><br>
             <input type="email" id="intern_email" name="intern_email" class="w3-input w3-round" required><br>
-
+    
             <label for="intern_password">Password:</label><br>
             <input type="password" id="intern_password" name="intern_password" class="w3-input w3-round" required><br>
-
+    
             <label for="intern_confirm_password">Confirm Password:</label><br>
             <input type="password" id="intern_confirm_password" name="intern_confirm_password" class="w3-input w3-round" required><br>
-
+    
             <label for="graduation_year">Graduation Year:</label><br>
-            <input type="text" id="graduation_year" name="graduation_year" class="w3-input w3-round"><br>
-
+            <select id="graduation_year" name="graduation_year" class="w3-input w3-round">
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+            </select><br>
+    
             <label for="major">Major:</label><br>
             <select id="major" name="major" class="w3-input w3-round">
                 <option value="Aerospace Engineering">Aerospace Engineering</option>
@@ -46,8 +50,8 @@
                 <option value="Law">Law</option>
             </select>
         </div>
-
+    
         <input type="submit" value="Register" class="w3-button w3-round w3-margin-top">
-    </form>
+    </form>    
 </div>
 {%endblock%}

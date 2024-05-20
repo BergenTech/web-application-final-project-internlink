@@ -309,7 +309,7 @@ def register_admin():
         verification_url = url_for('verify_admin_registration', token=token, _external=True)
         message = f'Hello, {admin_email} has registered as an Admin to the InternLink website. ' \
                   f'Click the following link to complete the registration: {verification_url}\n\nBest Regards,\nInternLink'
-        send_email('andbuc@bergen.org', 'Admin Registration Verification', message)
+        send_email('leolan25@bergen.org', 'Admin Registration Verification', message)
 
         flash('Admin registration pending. Email verification sent to Mrs. Buccino.', 'success')
         return redirect(url_for('login'))
@@ -422,11 +422,32 @@ def login():
 
     return render_template('login.html')
 
-@app.route("/view_jobs")
+@app.route("/view_jobs", methods=['GET', 'POST'])
 @login_required
 def view_jobs():
-    organizations = Organization.query.order_by(Organization.id.desc()).all()
-    return render_template("view_jobs.html", organizations=organizations)
+    if request.method == 'POST':
+        view_option = request.form.get('view_option', 'cards')
+    else:
+        view_option = request.args.get('view_option', 'cards')
+
+    page = request.args.get('page', 1, type=int)
+    major_filter = request.args.get('major', '')
+    per_page = 20
+
+    query = Organization.query
+    if major_filter:
+        query = query.filter(Organization.major.contains(major_filter))
+
+    pagination = query.order_by(Organization.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    organizations = pagination.items
+
+    pagination_links = {
+    'prev': url_for('view_jobs', page=pagination.prev_num, major=major_filter, view_option=view_option) if pagination.has_prev else None,
+    'next': url_for('view_jobs', page=pagination.next_num, major=major_filter, view_option=view_option) if pagination.has_next else None,
+    'pages': [{'num': num, 'url': url_for('view_jobs', page=num, major=major_filter, view_option=view_option)} for num in pagination.iter_pages()]
+    }
+
+    return render_template("view_jobs.html", view_option=view_option, organizations=organizations, pagination=pagination, pagination_links=pagination_links, major_filter=major_filter)
 
 @app.before_request
 def require_two_factor_auth():
@@ -495,7 +516,6 @@ def edit_profile():
         user.intern_name = request.form.get('intern_name', user.intern_name)
         user.intern_email = request.form.get('intern_email', user.intern_email)
         user.graduation_year = request.form.get('graduation_year', user.graduation_year)
-        user.major = request.form.get('major')
         user.claimed_job = user.claimed_job
         if 'resume' in request.files:
             resume_file = request.files['resume']
