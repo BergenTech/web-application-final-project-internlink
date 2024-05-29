@@ -72,6 +72,7 @@
                         <form method="post" action="{{ url_for('delete_profile', intern_id=intern.id) }}">
                             <button class="w3-button w3-red w3-round-large" style="margin-bottom: 10px;">Delete Profile</button>
                         </form>
+                        <img src="{{ url_for('static', filename='uploads/' + intern.profile_photo) }}" alt="Profile Photo" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 10px;">
                         <form id="editForm_{{ intern.id }}" action="{{ url_for('edit_interns', intern_id=intern.id) }}" method="post" enctype="multipart/form-data" style="display: none; width: 100%; text-align: left;">
                             <label for="intern_name">Name:</label>
                             <input type="text" id="intern_name_{{ intern.id }}" name="intern_name" value="{{ intern.intern_name }}" required class="w3-input w3-round"><br>

@@ -26,8 +26,8 @@ app.config['MAIL_USERNAME'] = 'internlinkbt@gmail.com'
 app.config['MAIL_PASSWORD'] = 'hldc xffp nbxx vnwm'  
 app.config['MAIL_DEFAULT_SENDER'] = 'internlinkbt@gmail.com'
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
+UPLOAD_FOLDER = os.path.join('static', 'uploads')
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif'}
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -36,7 +36,7 @@ db = SQLAlchemy(app)
 class Admin(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     admin_name = db.Column(db.String(100), nullable=False)
-    admin_email = db.Column(db.String(100), nullable=False, unique=True)
+    admin_email = db.Column(db.String(100), nullable=False)
     admin_password = db.Column(db.String(100), nullable=False)
     registration_verified = db.Column(db.Boolean, default=False)
 
@@ -99,6 +99,7 @@ class Intern(db.Model, UserMixin):
     graduation_year = db.Column(db.String(100), nullable=False)
     intern_password = db.Column(db.String(100), nullable=False)
     major = db.Column(db.String(100), nullable=False)
+    profile_photo = db.Column(db.String(100))
     resume = db.Column(db.String(100))
     email_verified = db.Column(db.Boolean, default=False)
     claimed_job = db.Column(db.Integer, db.ForeignKey('organization.id'))
@@ -235,6 +236,7 @@ def register_intern():
         intern_password = request.form['intern_password']
         intern_confirm_password = request.form['intern_confirm_password']
         major = request.form['major']
+        profile_photo = request.files.get('profile_photo')
 
         if not intern_email.endswith('@bergen.org'):
             flash('Only email addresses ending with @bergen.org are allowed to register.', 'error')
@@ -251,7 +253,19 @@ def register_intern():
             flash('An account with this email already exists. Please use a different email.', 'error')
             return redirect(url_for('register_intern'))
 
-        new_intern = Intern(intern_name=intern_name, intern_email=intern_email, graduation_year=graduation_year, intern_password=hashed_password, major=major)
+        profile_photo_filename = None
+        if profile_photo and allowed_file(profile_photo.filename):
+            profile_photo_filename = secure_filename(profile_photo.filename)
+            profile_photo.save(os.path.join(app.config['UPLOAD_FOLDER'], profile_photo_filename))
+
+        new_intern = Intern(
+            intern_name=intern_name,
+            intern_email=intern_email,
+            graduation_year=graduation_year,
+            intern_password=hashed_password,
+            major=major,
+            profile_photo=profile_photo_filename
+        )
         db.session.add(new_intern)
 
         try:
@@ -309,7 +323,7 @@ def register_admin():
         verification_url = url_for('verify_admin_registration', token=token, _external=True)
         message = f'Hello, {admin_email} has registered as an Admin to the InternLink website. ' \
                   f'Click the following link to complete the registration: {verification_url}\n\nBest Regards,\nInternLink'
-        send_email('andbuc@bergen.org', 'Admin Registration Verification', message)
+        send_email('leolan25@bergen.org', 'Admin Registration Verification', message)
 
         flash('Admin registration pending. Email verification sent to Mrs. Buccino.', 'success')
         return redirect(url_for('login'))
@@ -517,6 +531,7 @@ def edit_profile():
         user.intern_email = request.form.get('intern_email', user.intern_email)
         user.graduation_year = request.form.get('graduation_year', user.graduation_year)
         user.claimed_job = user.claimed_job
+        user.profile_photo = user.profile_photo
         if 'resume' in request.files:
             resume_file = request.files['resume']
             if resume_file and allowed_file(resume_file.filename):
@@ -542,6 +557,7 @@ def remove_resume():
     if user_type == 'Intern':
         user = Intern.query.get(user_id)
         user.resume = None
+        
     elif user_type == 'Admin':
         pass
     
@@ -581,6 +597,30 @@ def edit_interns(intern_id):
         return redirect(url_for('view_interns'))
 
     return render_template('view_interns.html', intern=intern)
+
+@app.route('/edit_profile_photo', methods=['POST'])
+@login_required
+def edit_profile_photo():
+    if 'profile_photo' not in request.files:
+        flash('No file part!', 'danger')
+        return redirect(url_for('profile_intern'))
+
+    file = request.files['profile_photo']
+
+    if file.filename == '':
+        flash('No selected file!', 'danger')
+        return redirect(url_for('profile_intern'))
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        current_user.profile_photo = filename
+        db.session.commit()
+        flash('Profile photo updated successfully!', 'success')
+    else:
+        flash('Invalid file type!', 'danger')
+
+    return redirect(url_for('profile_intern'))
 
 @app.route('/download_resume/<filename>')
 def download_resume(filename):

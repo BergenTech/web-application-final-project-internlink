@@ -16,7 +16,7 @@
     {% endwith %}
     <h2>Register As Intern</h2>
     <br>
-    <form method="POST" action="{{ url_for('register_intern') }}" class="w3-row-padding">
+    <form method="POST" action="{{ url_for('register_intern') }}" enctype="multipart/form-data" class="w3-row-padding">
         <div class="input-container">
             <label for="intern_name">Full Name:</label><br>
             <input type="text" id="intern_name" name="intern_name" class="w3-input w3-round" required><br>
@@ -48,10 +48,13 @@
                 <option value="Digital Media">Digital Media</option>
                 <option value="Fashion">Fashion</option>
                 <option value="Law">Law</option>
-            </select>
+            </select><br>
+    
+            <label for="profile_photo">Profile Photo:</label><br>
+            <input type="file" id="profile_photo" name="profile_photo" class="w3-input w3-round"><br>
         </div>
     
         <input type="submit" value="Register" class="w3-button w3-round w3-margin-top">
     </form>    
 </div>
-{%endblock%}
+{% endblock %}

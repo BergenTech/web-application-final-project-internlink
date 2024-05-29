@@ -16,9 +16,24 @@
     {% endwith %}
     <h2>Your Profile</h2>
     <div class="profile-info" style="display: inline-block; text-align: left;">
+
+        {% if user_type == 'Intern' %}
+        {% if user.profile_photo %}
+            <div class="profile-photo-container" style="text-align: center; position: relative; display: inline-block;">
+                <img src="{{ url_for('static', filename='uploads/' ~ user.profile_photo) }}" alt="Profile Photo" class="profile-photo">
+                <form id="editPhotoForm" action="{{ url_for('edit_profile_photo') }}" method="post" enctype="multipart/form-data" class="edit-photo-form">
+                    <label for="profile_photo" class="edit-photo-label">Edit</label>
+                    <input type="file" id="profile_photo" name="profile_photo" style="display: none;" onchange="document.getElementById('editPhotoForm').submit();">
+                </form>
+            </div>
+            <br>
+        {% endif %}
+        {% endif %}
+
         <p><strong>User Type:</strong> {{ user_type }}</p>
         <p><strong>Name:</strong> {% if user_type == 'Intern' %} {{ user.intern_name }} {% elif user_type == 'Admin' %} {{ user.admin_name }} {% else %} {{ user.organization_name }} {% endif %}</p>
         <p><strong>Email:</strong> {% if user_type == 'Intern' %} {{ user.intern_email }} {% elif user_type == 'Admin' %} {{ user.admin_email }} {% else %} {{ user.org_email }} {% endif %}</p>
+        
         {% if user_type == 'Intern' %}
         <p><strong>Graduation Year:</strong> {{ user.graduation_year }}</p>
         <p><strong>Major:</strong> {{ user.major }}</p>
@@ -39,10 +54,8 @@
         {% endif %}
         {% endif %}
     </div>
-    
-    <button onclick="toggleEditForm()" class="w3-button w3-round w3-grey w3-small" style="margin-left: 20px;">Edit/Add Resume</button>
-    
-    <form id="editForm" action="{{ url_for('edit_profile') }}" method="post" enctype="multipart/form-data" style="display: none; width: 40%; float: right;" enctype="multipart/form-data">
+        
+    <form id="editForm" action="{{ url_for('edit_profile') }}" method="post" enctype="multipart/form-data" style="width: 40%; float: right;">
         {% if user_type == 'Intern' %}
             <label for="intern_name">Name:</label>
             <input type="text" id="intern_name" name="intern_name" value="{{ user.intern_name }}" required class="w3-input w3-round"><br>
@@ -51,7 +64,7 @@
             <label for="graduation_year">Graduation Year:</label>
             <input type="text" id="graduation_year" name="graduation_year" value="{{ user.graduation_year }}" required class="w3-input w3-round"><br><br>
             <label for="resume">Resume:</label>
-            <input type="file" id="resume" name="resume" value="{{ user.resume }}" class="w3-input w3-round"><br>
+            <input type="file" id="resume" name="resume" class="w3-input w3-round"><br>
         {% elif user_type == 'Admin' %} 
             <label for="admin_name">Admin Name:</label>
             <input type="text" id="admin_name" name="admin_name" value="{{ user.admin_name }}" required class="w3-input w3-round"><br>
@@ -71,14 +84,37 @@
     </div>
 </div>
 
-<script>
-    function toggleEditForm() {
-        var editForm = document.getElementById("editForm");
-        if (editForm.style.display === "none") {
-            editForm.style.display = "block";
-        } else {
-            editForm.style.display = "none";
-        }
+<style>
+    .profile-photo-container {
+        position: relative;
+        display: inline-block;
     }
-</script>
+
+    .profile-photo-container:hover .edit-photo-form {
+        display: block;
+    }
+
+    .edit-photo-form {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: none;
+    }
+
+    .edit-photo-label {
+        background-color: rgba(0, 0, 0, 0.5);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .profile-photo {
+        border-radius: 50%;
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+    }
+</style>
 {% endblock %}

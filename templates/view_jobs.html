@@ -44,6 +44,10 @@
                 <option value="Research/Other">Research/Other</option>
             </select>
         </div>
+        <div class="search-container" style="text-align: right; margin-top: 20px;">
+            <label for="search">Search:</label>
+            <input type="text" id="search" style="width: 200px; border-radius: 5px;" onkeyup="searchJobs()">
+        </div>
     </div>
 
     {% if view_option == 'cards' %}
@@ -241,6 +245,27 @@
 </style>
 
 <script>
+    function searchJobs() {
+        var input = document.getElementById("search");
+        var filter = input.value.toLowerCase();
+
+        var jobs;
+        if (document.querySelector('.job-container')) {
+            jobs = document.querySelectorAll('.job-container .job-card');
+        } else {
+            jobs = document.querySelectorAll('.table-container .organization-row');
+        }
+
+        jobs.forEach(function(job) {
+            var textContent = job.innerText || job.textContent;
+            if (textContent.toLowerCase().indexOf(filter) > -1) {
+                job.style.display = "";
+            } else {
+                job.style.display = "none";
+            }
+        });
+    }
+
     function handlePagination(pageNum) {
         var majorFilter = document.getElementById('major-filter').value;
         var url = "{{ url_for('view_jobs') }}" + `?page=${pageNum}&major=${majorFilter}`;
