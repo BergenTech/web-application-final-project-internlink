@@ -288,7 +288,7 @@ def register_intern():
 @app.route('/verify_email/<token>')
 def verify_email(token):
     try:
-        intern_email = serializer.loads(token, salt='email-verification', max_age=3600)
+        intern_email = serializer.loads(token, salt='email-verification')
         intern = Intern.query.filter_by(intern_email=intern_email).first()
         if intern:
             intern.email_verified = True
@@ -333,7 +333,7 @@ def register_admin():
 @app.route('/verify_admin_registration/<token>', methods=['GET'])
 def verify_admin_registration(token):
     try:
-        admin_email = serializer.loads(token, salt='admin-registration', max_age=3600)
+        admin_email = serializer.loads(token, salt='admin-registration')
         admin = Admin.query.filter_by(admin_email=admin_email).first()
         if admin:
             admin.registration_verified = True
