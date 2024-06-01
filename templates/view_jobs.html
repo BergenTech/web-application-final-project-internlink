@@ -18,11 +18,12 @@
     <h2 style="text-align: center;">Internships</h2>
 
     <div class="view-options" style="margin-bottom: 20px;">
-        <form action="{{ url_for('view_jobs') }}" method="post">
-            <input type="radio" id="cards" name="view_option" value="cards" {% if view_option == 'cards' %}checked{% endif %} onchange="this.form.submit()">
+        <form action="{{ url_for('view_jobs') }}" method="post" id="view-form">
+            <input type="radio" id="cards" name="view_option" value="cards" {% if view_option == 'cards' %}checked{% endif %} onchange="submitViewForm()">
             <label for="cards">Cards</label>
-            <input type="radio" id="table" name="view_option" value="table" {% if view_option == 'table' %}checked{% endif %} onchange="this.form.submit()">
+            <input type="radio" id="table" name="view_option" value="table" {% if view_option == 'table' %}checked{% endif %} onchange="submitViewForm()">
             <label for="table">Table</label>
+            <input type="hidden" name="major" id="hidden-major" value="{{ major_filter }}">
         </form>
     </div>
 
@@ -30,18 +31,18 @@
         <div class="filter-options" style="display: flex; align-items: center;">
             <label for="major-filter">Filter By Major:</label>
             <select id="major-filter" style="width: 200px; margin-right: 20px; border-radius: 5px;" onchange="applyFilters()">
-                <option value="">All</option>
-                <option value="Aerospace Engineering">Aerospace Engineering</option>
-                <option value="Automotive Engineering">Automotive Engineering</option>
-                <option value="Business & Finance">Business & Finance</option>
-                <option value="Commercial Arts">Commercial Arts</option>
-                <option value="Computer Science">Computer Science</option>
-                <option value="Culinary">Culinary</option>
-                <option value="Digital Media">Digital Media</option>
-                <option value="Fashion">Fashion</option>
-                <option value="Law">Law</option>
-                <option value="Medical">Medical</option>
-                <option value="Research/Other">Research/Other</option>
+                <option value="" {% if major_filter == '' %}selected{% endif %}>All</option>
+                <option value="Aerospace Engineering" {% if major_filter == 'Aerospace Engineering' %}selected{% endif %}>Aerospace Engineering</option>
+                <option value="Automotive Engineering" {% if major_filter == 'Automotive Engineering' %}selected{% endif %}>Automotive Engineering</option>
+                <option value="Business & Finance" {% if major_filter == 'Business & Finance' %}selected{% endif %}>Business & Finance</option>
+                <option value="Commercial Arts" {% if major_filter == 'Commercial Arts' %}selected{% endif %}>Commercial Arts</option>
+                <option value="Computer Science" {% if major_filter == 'Computer Science' %}selected{% endif %}>Computer Science</option>
+                <option value="Culinary" {% if major_filter == 'Culinary' %}selected{% endif %}>Culinary</option>
+                <option value="Digital Media" {% if major_filter == 'Digital Media' %}selected{% endif %}>Digital Media</option>
+                <option value="Fashion" {% if major_filter == 'Fashion' %}selected{% endif %}>Fashion</option>
+                <option value="Law" {% if major_filter == 'Law' %}selected{% endif %}>Law</option>
+                <option value="Medical" {% if major_filter == 'Medical' %}selected{% endif %}>Medical</option>
+                <option value="Research/Other" {% if major_filter == 'Research/Other' %}selected{% endif %}>Research/Other</option>
             </select>
         </div>
         <div class="search-container" style="text-align: right; margin-top: 20px;">
@@ -127,27 +128,6 @@
             </table>
         </div>
     {% endif %}
-
-    <!-- Pagination Controls -->
-    <div class="pagination-controls" style="margin-top: 20px; text-align: center;">
-        <ul class="pagination">
-            {% if pagination.has_prev %}
-                <li class="page-item"><a class="page-link" href="{{ url_for('view_jobs', page=pagination.prev_num, major=major_filter, view_option=view_option) }}">Previous</a></li>
-            {% endif %}
-            {% for page_num in pagination.iter_pages() %}
-                {% if page_num %}
-                    <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
-                        <a class="page-link" href="{{ url_for('view_jobs', page=page_num, major=major_filter, view_option=view_option) }}">{{ page_num }}</a>
-                    </li>
-                {% else %}
-                    <li class="page-item disabled"><span class="page-link">...</span></li>
-                {% endif %}
-            {% endfor %}
-            {% if pagination.has_next %}
-                <li class="page-item"><a class="page-link" href="{{ url_for('view_jobs', page=pagination.next_num, major=major_filter, view_option=view_option) }}">Next</a></li>
-            {% endif %}
-        </ul>
-    </div>
 </div>
 
 <style>
@@ -283,40 +263,17 @@
     }
 
     function applyFilters() {
-        var selectedMajor = document.getElementById('major-filter').value.toLowerCase();
+        var selectedMajor = document.getElementById('major-filter').value;
         var viewOption = document.querySelector('input[name="view_option"]:checked').value;
-
-        // For Card View
-        var cards = document.querySelectorAll('.job-card');
-        cards.forEach(function(card) {
-            var majors = card.querySelector('.job-info p:last-child').textContent.replace('Related Major(s): ', '').toLowerCase();
-            if (selectedMajor === '' || majors.includes(selectedMajor)) {
-                card.style.display = 'flex';
-            } else {
-                card.style.display = 'none';
-            }
-        });
-
-        // For Table View
-        var rows = document.querySelectorAll('.organization-row');
-        rows.forEach(function(row) {
-            var majors = row.querySelector('.majors').textContent.toLowerCase();
-
-            if (selectedMajor === '' || majors.includes(selectedMajor)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        var form = document.querySelector('.view-options form');
-        form.querySelector('input[name="view_option"]').value = viewOption;
-        form.submit();
+        var url = new URL(window.location.href);
+        url.searchParams.set('major', selectedMajor);
+        url.searchParams.set('view_option', viewOption);
+        window.location.href = url.toString();
     }
 
-    document.getElementById('major-filter').addEventListener('change', function() {
-        applyFilters();
-        handlePagination(1); 
-    });
+    function submitViewForm() {
+        document.getElementById('hidden-major').value = document.getElementById('major-filter').value;
+        document.getElementById('view-form').submit();
+    }
 </script>
 {% endblock %}

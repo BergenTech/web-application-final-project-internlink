@@ -444,24 +444,33 @@ def view_jobs():
     else:
         view_option = request.args.get('view_option', 'cards')
 
-    page = request.args.get('page', 1, type=int)
     major_filter = request.args.get('major', '')
-    per_page = 20
 
-    query = Organization.query
     if major_filter:
-        query = query.filter(Organization.major.contains(major_filter))
+        organizations = Organization.query.filter(Organization.major.ilike(f'%{major_filter}%')).order_by(Organization.id.desc()).all()
+    else:
+        organizations = Organization.query.order_by(Organization.id.desc()).all()
 
-    pagination = query.order_by(Organization.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
-    organizations = pagination.items
+    return render_template('view_jobs.html', organizations=organizations, view_option=view_option, major_filter=major_filter)
 
-    pagination_links = {
-    'prev': url_for('view_jobs', page=pagination.prev_num, major=major_filter, view_option=view_option) if pagination.has_prev else None,
-    'next': url_for('view_jobs', page=pagination.next_num, major=major_filter, view_option=view_option) if pagination.has_next else None,
-    'pages': [{'num': num, 'url': url_for('view_jobs', page=num, major=major_filter, view_option=view_option)} for num in pagination.iter_pages()]
-    }
+    # page = request.args.get('page', 1, type=int)
+    # major_filter = request.args.get('major', '')
+    # per_page = 20
 
-    return render_template("view_jobs.html", view_option=view_option, organizations=organizations, pagination=pagination, pagination_links=pagination_links, major_filter=major_filter)
+    # query = Organization.query
+    # if major_filter:
+    #     query = query.filter(Organization.major.contains(major_filter))
+
+    # pagination = query.order_by(Organization.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    # organizations = pagination.items
+
+    # pagination_links = {
+    # 'prev': url_for('view_jobs', page=pagination.prev_num, major=major_filter, view_option=view_option) if pagination.has_prev else None,
+    # 'next': url_for('view_jobs', page=pagination.next_num, major=major_filter, view_option=view_option) if pagination.has_next else None,
+    # 'pages': [{'num': num, 'url': url_for('view_jobs', page=num, major=major_filter, view_option=view_option)} for num in pagination.iter_pages()]
+    # }
+
+    # return render_template("view_jobs.html", view_option=view_option, organizations=organizations, pagination=pagination, pagination_links=pagination_links, major_filter=major_filter)
 
 @app.before_request
 def require_two_factor_auth():
@@ -628,3 +637,4 @@ def download_resume(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
+    
