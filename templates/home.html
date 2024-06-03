@@ -77,5 +77,24 @@
     <div style="margin-top: 35px;">
         <img src="{{ url_for('static', filename='home_page.png') }}" alt="Your Picture" class="w3-round fade-in" style="width: 70%; border-radius: 10px;">
     </div>
+    <style>
+        .slides-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; 
+        }
+        iframe {
+            width: 100%; 
+            height: 600px; 
+            border: none; 
+        }
+    </style>
+</head>
+<body>
+    <div class="slides-container">
+        <iframe src="https://docs.google.com/presentation/d/e/2PACX-1vReYPJwT_bAtZMvPozS1f2V82Mlhh35Wlb6M3_8Z7YDr6ppTjpDFTWK5t1un1ACh82b_lkE_vZrF7NO/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>    </div>
+
+    </div>
 </div>
 {% endblock %}
