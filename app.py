@@ -1,13 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
-from flask_login import LoginManager, UserMixin
-from flask_login import login_user, current_user, logout_user, login_required
-from flask import Flask, render_template, request, flash, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
-import os
+from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+import os
 import csv
 from itsdangerous import URLSafeTimedSerializer
 from sqlalchemy.exc import IntegrityError
@@ -23,7 +20,7 @@ app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USERNAME'] = 'internlinkbt@gmail.com'
-app.config['MAIL_PASSWORD'] = 'hldc xffp nbxx vnwm'  
+app.config['MAIL_PASSWORD'] = 'hldc xffp nbxx vnwm'
 app.config['MAIL_DEFAULT_SENDER'] = 'internlinkbt@gmail.com'
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
@@ -32,6 +29,12 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 db = SQLAlchemy(app)
+
+# Association table for many-to-many relationship
+intern_organization = db.Table('intern_organization',
+    db.Column('intern_id', db.Integer, db.ForeignKey('intern.id'), primary_key=True),
+    db.Column('organization_id', db.Integer, db.ForeignKey('organization.id'), primary_key=True)
+)
 
 class Admin(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -54,10 +57,15 @@ class Admin(db.Model, UserMixin):
     @property
     def is_anonymous(self):
         return False
-    
-    @login_manager.user_loader
-    def load_user(user_id):
+
+@login_manager.user_loader
+def load_user(user_id):
+    if session.get('user_type') == 'Intern':
+        return Intern.query.get(int(user_id))
+    elif session.get('user_type') == 'Admin':
         return Admin.query.get(int(user_id))
+    elif session.get('user_type') == 'Organization':
+        return Organization.query.get(int(user_id))
 
 class Organization(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -87,11 +95,7 @@ class Organization(db.Model, UserMixin):
     @property
     def is_anonymous(self):
         return False
-    
-    @login_manager.user_loader
-    def load_user(user_id):
-        return Organization.query.get(int(user_id))
-    
+
 class Intern(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     intern_name = db.Column(db.String(100), nullable=False)
@@ -102,7 +106,7 @@ class Intern(db.Model, UserMixin):
     profile_photo = db.Column(db.String(100))
     resume = db.Column(db.String(100))
     email_verified = db.Column(db.Boolean, default=False)
-    claimed_job = db.Column(db.Integer, db.ForeignKey('organization.id'))
+    claimed_jobs = db.relationship('Organization', secondary=intern_organization, backref='interns')
 
     def get_id(self):
         return str(self.id)
@@ -118,11 +122,7 @@ class Intern(db.Model, UserMixin):
     @property
     def is_anonymous(self):
         return False
-    
-    @login_manager.user_loader
-    def load_user(user_id):
-        return Intern.query.get(int(user_id))
-    
+
 class DataImportFlag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -153,7 +153,7 @@ def import_csv_data():
                     )
                     db.session.add(new_organization)
                 db.session.commit()
-        
+
             data_import_flag = DataImportFlag()
             db.session.add(data_import_flag)
             db.session.commit()
@@ -173,10 +173,17 @@ def claim_job(organization_id):
     if request.method == 'POST':
         intern_id = current_user.id
         intern = Intern.query.get(intern_id)
-        if intern:
-            intern.claimed_job = organization_id
-            db.session.commit()
-            flash('You have successfully claimed this job!', 'success')
+        organization = Organization.query.get(organization_id)
+        if intern and organization:
+            if len(intern.claimed_jobs) < 5:
+                if organization not in intern.claimed_jobs:
+                    intern.claimed_jobs.append(organization)
+                    db.session.commit()
+                    flash('You have successfully claimed this job!', 'success')
+                else:
+                    flash('You have already claimed this job.', 'info')
+            else:
+                flash('You can only claim up to 5 jobs.', 'error')
         else:
             flash('Error: Unable to claim job.', 'error')
     return redirect(url_for('view_jobs'))
@@ -298,7 +305,7 @@ def verify_email(token):
             flash('Invalid verification link.', 'error')
     except:
         flash('The verification link is invalid or has expired.', 'error')
-    
+
     return redirect(url_for('login'))
 
 @app.route('/register/admin', methods=['GET', 'POST'])
@@ -343,7 +350,7 @@ def verify_admin_registration(token):
             flash('Invalid verification link.', 'error')
     except:
         flash('The verification link is invalid or has expired.', 'error')
-    
+
     return redirect(url_for('login'))
 
 @app.route('/add_organization', methods=['GET', 'POST'])
@@ -362,7 +369,7 @@ def add_organization():
             internship_mentor = request.form['internship_mentor']
             internship_topic = request.form['internship_topic']
             majors = request.form.getlist('selected_majors')
-            major_string=', '.join(majors)
+            major_string = ', '.join(majors)
 
             new_organization = Organization(
                 company_name=company_name,
@@ -453,25 +460,6 @@ def view_jobs():
 
     return render_template('view_jobs.html', organizations=organizations, view_option=view_option, major_filter=major_filter)
 
-    # page = request.args.get('page', 1, type=int)
-    # major_filter = request.args.get('major', '')
-    # per_page = 20
-
-    # query = Organization.query
-    # if major_filter:
-    #     query = query.filter(Organization.major.contains(major_filter))
-
-    # pagination = query.order_by(Organization.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
-    # organizations = pagination.items
-
-    # pagination_links = {
-    # 'prev': url_for('view_jobs', page=pagination.prev_num, major=major_filter, view_option=view_option) if pagination.has_prev else None,
-    # 'next': url_for('view_jobs', page=pagination.next_num, major=major_filter, view_option=view_option) if pagination.has_next else None,
-    # 'pages': [{'num': num, 'url': url_for('view_jobs', page=num, major=major_filter, view_option=view_option)} for num in pagination.iter_pages()]
-    # }
-
-    # return render_template("view_jobs.html", view_option=view_option, organizations=organizations, pagination=pagination, pagination_links=pagination_links, major_filter=major_filter)
-
 @app.before_request
 def require_two_factor_auth():
     if request.path in ['/view_interns', '/add_organization']:
@@ -489,7 +477,7 @@ def view_interns():
     else:
         flash('You do not have permission to access this page.', 'error')
         return redirect(url_for('index'))
-    
+
 @app.route("/two_factor_auth", methods=['GET', 'POST'])
 def two_factor_auth():
     if request.method == 'POST':
@@ -500,7 +488,7 @@ def two_factor_auth():
             return redirect(url_for('index'))
         else:
             flash('Incorrect password. Please try again.', 'error')
-    
+
     return render_template('two_factor_auth.html')
 
 @app.route("/profile/intern")
@@ -514,7 +502,7 @@ def profile_intern():
     else:
         flash('You do not have permission to access this page.', 'error')
         return redirect(url_for('index'))
-    
+
 @app.route("/profile/admin")
 def profile_admin():
     if session.get('user_id') and session.get('user_type') == 'Admin' and current_user.is_authenticated:
@@ -525,7 +513,7 @@ def profile_admin():
     else:
         flash('You do not have permission to access this page.', 'error')
         return redirect(url_for('index'))
-    
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -533,13 +521,12 @@ def allowed_file(filename):
 def edit_profile():
     user_id = session['user_id']
     user_type = session.get('user_type')
-    
+
     if user_type == 'Intern':
         user = Intern.query.get(user_id)
         user.intern_name = request.form.get('intern_name', user.intern_name)
         user.intern_email = request.form.get('intern_email', user.intern_email)
         user.graduation_year = request.form.get('graduation_year', user.graduation_year)
-        user.claimed_job = user.claimed_job
         user.profile_photo = user.profile_photo
         if 'resume' in request.files:
             resume_file = request.files['resume']
@@ -562,14 +549,14 @@ def edit_profile():
 def remove_resume():
     user_id = request.form.get('user_id')
     user_type = session.get('user_type')
-    
+
     if user_type == 'Intern':
         user = Intern.query.get(user_id)
         user.resume = None
-        
+
     elif user_type == 'Admin':
         pass
-    
+
     db.session.commit()
     flash('Resume removed successfully!', 'success')
     return redirect(url_for(f'profile_{user_type.lower()}'))
@@ -599,7 +586,7 @@ def edit_interns(intern_id):
             intern.resume = filename
 
         if 'delete_claimed_job' in request.form:
-            intern.claimed_job = None
+            intern.claimed_jobs.clear()
 
         db.session.commit()
         flash('Intern information updated successfully.', 'success')
@@ -636,5 +623,4 @@ def download_resume(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == "__main__":
-    app.run(debug=True)
-    
+    app.run()
