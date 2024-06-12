@@ -56,10 +56,13 @@
                         <p>Email: <a href="mailto:{{ intern.intern_email }}">{{ intern.intern_email }}</a></p>
                         <p>Graduation Year: {{ intern.graduation_year }}</p>
                         <p>Major: {{ intern.major }}</p>
-                        <p>Claimed Job:
-                            {% if intern.claimed_job %}
-                                {% set organization = Organization.query.get(intern.claimed_job) %}
-                                {{ organization.company_name }}
+                        <p>Claimed Jobs:
+                            {% if intern.claimed_jobs %}
+                                <ul>
+                                    {% for job in intern.claimed_jobs %}
+                                        <li>{{ job.company_name }}</li>
+                                    {% endfor %}
+                                </ul>
                             {% else %}
                                 None
                             {% endif %}
@@ -72,7 +75,7 @@
                         <form method="post" action="{{ url_for('delete_profile', intern_id=intern.id) }}">
                             <button class="w3-button w3-red w3-round-large" style="margin-bottom: 10px;">Delete Profile</button>
                         </form>
-                        <img src="{{ url_for('static', filename='uploads/' + intern.profile_photo) }}" alt="Profile Photo" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 10px;">
+                        <img src="{{ url_for('static', filename='uploads/' + (intern.profile_photo if intern.profile_photo else 'default.jpeg')) }}" alt="Profile Photo" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 10px;">
                         <form id="editForm_{{ intern.id }}" action="{{ url_for('edit_interns', intern_id=intern.id) }}" method="post" enctype="multipart/form-data" style="display: none; width: 100%; text-align: left;">
                             <label for="intern_name">Name:</label>
                             <input type="text" id="intern_name_{{ intern.id }}" name="intern_name" value="{{ intern.intern_name }}" required class="w3-input w3-round"><br>
@@ -112,7 +115,7 @@
                         <th>Email</th>
                         <th>Graduation Year</th>
                         <th>Major</th>
-                        <th>Claimed Job</th>
+                        <th>Claimed Jobs</th>
                         <th>Resume</th>
                         <th>Actions</th>
                     </tr>
@@ -125,9 +128,12 @@
                             <td>{{ intern.graduation_year }}</td>
                             <td class="intern-major">{{ intern.major }}</td>
                             <td>
-                                {% if intern.claimed_job %}
-                                    {% set organization = Organization.query.get(intern.claimed_job) %}
-                                    {{ organization.company_name }}
+                                {% if intern.claimed_jobs %}
+                                    <ul>
+                                        {% for job in intern.claimed_jobs %}
+                                            <li>{{ job.company_name }}</li>
+                                        {% endfor %}
+                                    </ul>
                                 {% else %}
                                     None
                                 {% endif %}

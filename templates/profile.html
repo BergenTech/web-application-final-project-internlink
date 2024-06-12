@@ -18,16 +18,18 @@
     <div class="profile-info" style="display: inline-block; text-align: left;">
 
         {% if user_type == 'Intern' %}
-        {% if user.profile_photo %}
-            <div class="profile-photo-container" style="text-align: center; position: relative; display: inline-block;">
-                <img src="{{ url_for('static', filename='uploads/' ~ user.profile_photo) }}" alt="Profile Photo" class="profile-photo">
-                <form id="editPhotoForm" action="{{ url_for('edit_profile_photo') }}" method="post" enctype="multipart/form-data" class="edit-photo-form">
-                    <label for="profile_photo" class="edit-photo-label">Edit</label>
-                    <input type="file" id="profile_photo" name="profile_photo" style="display: none;" onchange="document.getElementById('editPhotoForm').submit();">
-                </form>
-            </div>
-            <br>
-        {% endif %}
+        <div class="profile-photo-container" style="text-align: center; position: relative; display: inline-block;">
+            {% if user.profile_photo %}
+                <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" alt="Profile Photo" class="profile-photo">
+            {% else %}
+                <img src="{{ url_for('static', filename='uploads/default.jpg') }}" alt="Profile Photo" class="profile-photo">
+            {% endif %}
+            <form id="editPhotoForm" action="{{ url_for('edit_profile_photo') }}" method="post" enctype="multipart/form-data" class="edit-photo-form">
+                <label for="profile_photo" class="edit-photo-label">Edit</label>
+                <input type="file" id="profile_photo" name="profile_photo" style="display: none;" onchange="document.getElementById('editPhotoForm').submit();">
+            </form>
+        </div>
+        <br>
         {% endif %}
 
         <p><strong>User Type:</strong> {{ user_type }}</p>
@@ -37,10 +39,13 @@
         {% if user_type == 'Intern' %}
         <p><strong>Graduation Year:</strong> {{ user.graduation_year }}</p>
         <p><strong>Major:</strong> {{ user.major }}</p>
-        <p><strong>Claimed Job:</strong>
-            {% if user.claimed_job %}
-                {% set organization = Organization.query.get(user.claimed_job) %}
-                {{ organization.company_name }}
+        <p><strong>Claimed Jobs:</strong>
+            {% if user.claimed_jobs %}
+                <ul>
+                    {% for job in user.claimed_jobs %}
+                        <li>{{ job.company_name }}</li>
+                    {% endfor %}
+                </ul>
             {% else %}
                 None
             {% endif %}
@@ -63,6 +68,8 @@
             <input type="email" id="intern_email" name="intern_email" value="{{ user.intern_email }}" required class="w3-input w3-round"><br>
             <label for="graduation_year">Graduation Year:</label>
             <input type="text" id="graduation_year" name="graduation_year" value="{{ user.graduation_year }}" required class="w3-input w3-round"><br><br>
+            <label for="major">Major:</label>
+            <input type="text" id="major" name="major" value="{{ user.major }}" required class="w3-input w3-round"><br>
             <label for="resume">Resume:</label>
             <input type="file" id="resume" name="resume" class="w3-input w3-round"><br>
         {% elif user_type == 'Admin' %} 
@@ -71,7 +78,7 @@
             <label for="admin_email">Email:</label>
             <input type="email" id="admin_email" name="admin_email" value="{{ user.admin_email }}" required class="w3-input w3-round"><br>
             <label for="admin_password">Password:</label>
-            <input type="password" id="admin_password" name="admin_password" value="{{ user.admin_password }}" required class="w3-input w3-round"><br>
+            <input type="password" id="admin_password" name="admin_password" class="w3-input w3-round"><br>
         {% endif %}
         <input type="submit" value="Save Changes" class="w3-button w3-round w3-grey w3-small">
     </form>    
