@@ -14,6 +14,12 @@
         </div>
     {% endif %}
     {% endwith %}
+    <div style="clear: both;">
+        <form action="{{ url_for('logout') }}" method="post" style="display: inline-block;">
+            <input type="submit" value="Logout" class="w3-button w3-round w3-black">
+        </form>
+        <a href="{{ url_for('index') }}" class="w3-button w3-round-large" style="display: inline-block; margin-left: 10px;">Home</a>
+    </div>
     <h2>Your Profile</h2>
     <div class="profile-info" style="display: inline-block; text-align: left;">
 
@@ -39,17 +45,7 @@
         {% if user_type == 'Intern' %}
         <p><strong>Graduation Year:</strong> {{ user.graduation_year }}</p>
         <p><strong>Major:</strong> {{ user.major }}</p>
-        <p><strong>Claimed Jobs:</strong>
-            {% if user.claimed_jobs %}
-                <ul>
-                    {% for job in user.claimed_jobs %}
-                        <li>{{ job.company_name }}</li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                None
-            {% endif %}
-        </p>
+        
         {% if user.resume %}
         <p><strong>Resume:</strong> <a href="{{ url_for('download_resume', filename=user.resume) }}">{{ user.resume }}</a></p>
         <form action="{{ url_for('remove_resume') }}" method="post">
@@ -82,13 +78,38 @@
         {% endif %}
         <input type="submit" value="Save Changes" class="w3-button w3-round w3-grey w3-small">
     </form>    
-    
-    <div style="clear: both;">
-        <form action="{{ url_for('logout') }}" method="post" style="display: inline-block;">
-            <input type="submit" value="Logout" class="w3-button w3-round w3-black">
-        </form>
-        <a href="{{ url_for('index') }}" class="w3-button w3-round-large" style="display: inline-block; margin-left: 10px;">Home</a>
+    <div class="container mt-5">
+        <p><strong>Claimed Jobs:</strong></p>
+        {% if user.intern_organizations %}
+        <table class="w3-table w3-bordered w3-striped w3-card-4">
+            <thead>
+                <tr>
+                    <th>Organization</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for intern_org in user.intern_organizations %}
+                <tr>
+                    <td>{{ intern_org.organization.company_name }}</td>
+                    <td>
+                        <span class="badge 
+                            {% if intern_org.status == 'Approved' %} badge-success
+                            {% elif intern_org.status == 'Denied' %} badge-danger
+                            {% elif intern_org.status == 'Pending' %} badge-warning
+                            {% endif %}">
+                            {{ intern_org.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            None
+        {% endif %}
     </div>
+    
 </div>
 
 <style>
@@ -122,6 +143,18 @@
         width: 150px;
         height: 150px;
         object-fit: cover;
+    }
+
+    .badge-success {
+        background-color: #28a745;
+    }
+
+    .badge-danger {
+        background-color: #dc3545;
+    }
+
+    .badge-warning {
+        background-color: #ffc107;
     }
 </style>
 {% endblock %}

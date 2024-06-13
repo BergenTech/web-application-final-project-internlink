@@ -194,12 +194,26 @@ def import_csv_data():
 @login_required
 def manage_claims():
     if current_user.is_admin:
-        claims = InternOrganization.query.all()
+        organization_filter = request.args.get('organization_filter')
+        intern_filter = request.args.get('intern_filter')
+
+        claims_query = InternOrganization.query
+
+        if organization_filter:
+            claims_query = claims_query.filter_by(organization_id=organization_filter)
+
+        if intern_filter:
+            claims_query = claims_query.filter_by(intern_id=intern_filter)
+
+        claims = claims_query.all()
         organizations = Organization.query.all()
-        return render_template('manage_claims.html', claims=claims, organizations=organizations)
+        interns = Intern.query.all()
+
+        return render_template('manage_claims.html', claims=claims, organizations=organizations, interns=interns)
     else:
         flash('Access Denied', 'danger')
-        return redirect(url_for('home'))
+        return redirect(url_for('index'))
+
 
 
 
@@ -254,13 +268,8 @@ def claim_job(organization_id):
         organization = Organization.query.get(organization_id)
         if intern and organization:
             if len(intern.claimed_jobs) < 5:
-                existing_claim = InternOrganization.query.filter_by(intern_id=intern_id, organization_id=organization_id).first()
-                if not existing_claim:
-                    new_claim = InternOrganization(
-                        intern_id=intern_id,
-                        organization_id=organization_id,
-                        status='Requested'  # Set default status to 'Requested'
-                    )
+                if organization not in intern.claimed_jobs:
+                    new_claim = InternOrganization(intern_id=intern_id, organization_id=organization_id, status='Requested')
                     db.session.add(new_claim)
                     db.session.commit()
                     flash('You have successfully claimed this job!', 'success')
@@ -271,6 +280,7 @@ def claim_job(organization_id):
         else:
             flash('Error: Unable to claim job.', 'error')
     return redirect(url_for('view_jobs'))
+
 
 
 @app.route('/delete_profile/<int:intern_id>', methods=['POST'])
