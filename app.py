@@ -8,6 +8,8 @@ import os
 import csv
 from itsdangerous import URLSafeTimedSerializer
 from sqlalchemy.exc import IntegrityError
+from flask_migrate import Migrate
+
 
 app = Flask(__name__)
 login_manager = LoginManager(app)
@@ -29,12 +31,9 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
-# Association table for many-to-many relationship
-intern_organization = db.Table('intern_organization',
-    db.Column('intern_id', db.Integer, db.ForeignKey('intern.id'), primary_key=True),
-    db.Column('organization_id', db.Integer, db.ForeignKey('organization.id'), primary_key=True)
-)
+
 
 class Admin(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -57,7 +56,10 @@ class Admin(db.Model, UserMixin):
     @property
     def is_anonymous(self):
         return False
-
+    @property
+    def is_admin(self):
+        return True  # Since this is the Admin class, always return True
+    
 @login_manager.user_loader
 def load_user(user_id):
     if session.get('user_type') == 'Intern':
@@ -67,7 +69,17 @@ def load_user(user_id):
     elif session.get('user_type') == 'Organization':
         return Organization.query.get(int(user_id))
 
+
+class DataImportFlag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    def get_id(self):
+        return str(self.id)
+
 class Organization(db.Model, UserMixin):
+    __tablename__ = 'organization'
+    __table_args__ = {'extend_existing': True}
+
     id = db.Column(db.Integer, primary_key=True)
     company_name = db.Column(db.String(100), nullable=False)
     website = db.Column(db.String(100), nullable=False)
@@ -80,6 +92,9 @@ class Organization(db.Model, UserMixin):
     internship_mentor = db.Column(db.String(100), nullable=False)
     internship_topic = db.Column(db.String(100), nullable=False)
     major = db.Column(db.String(100))
+    approval_limit = db.Column(db.Integer, default=5)
+    approved_claims_count = db.Column(db.Integer, default=0)
+    claims = db.relationship('Claim', backref='organization', lazy=True)
 
     def get_id(self):
         return str(self.id)
@@ -95,6 +110,25 @@ class Organization(db.Model, UserMixin):
     @property
     def is_anonymous(self):
         return False
+
+class Claim(db.Model):
+    __tablename__ = 'claim'
+    __table_args__ = {'extend_existing': True}
+
+    id = db.Column(db.Integer, primary_key=True)
+    status = db.Column(db.String(50), default='Pending')
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable=False)
+    intern_id = db.Column(db.Integer, db.ForeignKey('intern.id'), nullable=False)
+
+
+class InternOrganization(db.Model):
+    __tablename__ = 'intern_organization'
+    intern_id = db.Column(db.Integer, db.ForeignKey('intern.id'), primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), primary_key=True)
+    status = db.Column(db.String(50), default='Pending')
+    
+    intern = db.relationship('Intern', backref=db.backref('intern_organizations', lazy=True))
+    organization = db.relationship('Organization', backref=db.backref('intern_organizations', lazy=True))
 
 class Intern(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -106,7 +140,8 @@ class Intern(db.Model, UserMixin):
     profile_photo = db.Column(db.String(100))
     resume = db.Column(db.String(100))
     email_verified = db.Column(db.Boolean, default=False)
-    claimed_jobs = db.relationship('Organization', secondary=intern_organization, backref='interns')
+    claimed_jobs = db.relationship('Organization', secondary='intern_organization', backref='interns')
+    claims = db.relationship('Claim', backref='intern', lazy=True)
 
     def get_id(self):
         return str(self.id)
@@ -122,25 +157,6 @@ class Intern(db.Model, UserMixin):
     @property
     def is_anonymous(self):
         return False
-
-class DataImportFlag(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-
-    def get_id(self):
-        return str(self.id)
-
-class Organization(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    approval_limit = db.Column(db.Integer, default=5)
-    approved_claims_count = db.Column(db.Integer, default=0)
-    claims = db.relationship('Claim', backref='organization', lazy=True)
-
-class Claim(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    status = db.Column(db.String(50), default='Pending')
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable=False)
-    intern_id = db.Column(db.Integer, db.ForeignKey('intern.id'), nullable=False)
 
 with app.app_context():
     db.create_all()
@@ -171,26 +187,28 @@ def import_csv_data():
             db.session.add(data_import_flag)
             db.session.commit()
 
-import_csv_data()
+# import_csv_data()
 
 
 @app.route('/admin/manage_claims')
 @login_required
 def manage_claims():
     if current_user.is_admin:
-        claims = Claim.query.all()
+        claims = InternOrganization.query.all()
         organizations = Organization.query.all()
         return render_template('manage_claims.html', claims=claims, organizations=organizations)
     else:
         flash('Access Denied', 'danger')
         return redirect(url_for('home'))
 
-@app.route('/admin/approve_claim/<int:claim_id>', methods=['POST'])
+
+
+@app.route('/admin/approve_claim/<int:intern_id>/<int:organization_id>', methods=['POST'])
 @login_required
-def approve_claim(claim_id):
+def approve_claim(intern_id, organization_id):
     if current_user.is_admin:
-        claim = Claim.query.get_or_404(claim_id)
-        organization = Organization.query.get_or_404(claim.organization_id)
+        claim = InternOrganization.query.filter_by(intern_id=intern_id, organization_id=organization_id).first()
+        organization = Organization.query.get_or_404(organization_id)
         if organization.approved_claims_count < organization.approval_limit:
             claim.status = 'Approved'
             organization.approved_claims_count += 1
@@ -201,20 +219,23 @@ def approve_claim(claim_id):
         return redirect(url_for('manage_claims'))
     else:
         flash('Access Denied', 'danger')
-        return redirect(url_for('home'))
+        return redirect(url_for('index'))
 
-@app.route('/admin/deny_claim/<int:claim_id>', methods=['POST'])
+@app.route('/admin/deny_claim/<int:intern_id>/<int:organization_id>', methods=['POST'])
 @login_required
-def deny_claim(claim_id):
+def deny_claim(intern_id, organization_id):
     if current_user.is_admin:
-        claim = Claim.query.get_or_404(claim_id)
+        claim = InternOrganization.query.filter_by(intern_id=intern_id, organization_id=organization_id).first()
         claim.status = 'Denied'
         db.session.commit()
         flash('Claim denied successfully', 'success')
         return redirect(url_for('manage_claims'))
     else:
         flash('Access Denied', 'danger')
-        return redirect(url_for('home'))
+        return redirect(url_for('index'))
+
+
+
 
 
 @app.route('/logout', methods=['GET', 'POST'])
@@ -233,8 +254,14 @@ def claim_job(organization_id):
         organization = Organization.query.get(organization_id)
         if intern and organization:
             if len(intern.claimed_jobs) < 5:
-                if organization not in intern.claimed_jobs:
-                    intern.claimed_jobs.append(organization)
+                existing_claim = InternOrganization.query.filter_by(intern_id=intern_id, organization_id=organization_id).first()
+                if not existing_claim:
+                    new_claim = InternOrganization(
+                        intern_id=intern_id,
+                        organization_id=organization_id,
+                        status='Requested'  # Set default status to 'Requested'
+                    )
+                    db.session.add(new_claim)
                     db.session.commit()
                     flash('You have successfully claimed this job!', 'success')
                 else:
@@ -244,6 +271,7 @@ def claim_job(organization_id):
         else:
             flash('Error: Unable to claim job.', 'error')
     return redirect(url_for('view_jobs'))
+
 
 @app.route('/delete_profile/<int:intern_id>', methods=['POST'])
 def delete_profile(intern_id):

@@ -27,15 +27,15 @@
         <tbody>
             {% for claim in claims %}
             <tr>
-                <td>{{ claim.intern.name }}</td>
-                <td>{{ claim.organization.name }}</td>
+                <td>{{ claim.intern.intern_name }}</td>
+                <td>{{ claim.organization.company_name }}</td>
                 <td>{{ claim.status }}</td>
                 <td>
-                    {% if claim.status == 'Pending' %}
-                    <form action="{{ url_for('approve_claim', claim_id=claim.id) }}" method="POST" style="display:inline;">
+                    {% if claim.status == 'Requested' %}
+                    <form action="{{ url_for('approve_claim', intern_id=claim.intern_id, organization_id=claim.organization_id) }}" method="POST" style="display:inline;">
                         <button type="submit" class="w3-button w3-green">Approve</button>
                     </form>
-                    <form action="{{ url_for('deny_claim', claim_id=claim.id) }}" method="POST" style="display:inline;">
+                    <form action="{{ url_for('deny_claim', intern_id=claim.intern_id, organization_id=claim.organization_id) }}" method="POST" style="display:inline;">
                         <button type="submit" class="w3-button w3-red">Deny</button>
                     </form>
                     {% endif %}
