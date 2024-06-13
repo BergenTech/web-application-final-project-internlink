@@ -129,6 +129,19 @@ class DataImportFlag(db.Model):
     def get_id(self):
         return str(self.id)
 
+class Organization(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    approval_limit = db.Column(db.Integer, default=5)
+    approved_claims_count = db.Column(db.Integer, default=0)
+    claims = db.relationship('Claim', backref='organization', lazy=True)
+
+class Claim(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    status = db.Column(db.String(50), default='Pending')
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable=False)
+    intern_id = db.Column(db.Integer, db.ForeignKey('intern.id'), nullable=False)
+
 with app.app_context():
     db.create_all()
 
@@ -159,6 +172,50 @@ def import_csv_data():
             db.session.commit()
 
 import_csv_data()
+
+
+@app.route('/admin/manage_claims')
+@login_required
+def manage_claims():
+    if current_user.is_admin:
+        claims = Claim.query.all()
+        organizations = Organization.query.all()
+        return render_template('manage_claims.html', claims=claims, organizations=organizations)
+    else:
+        flash('Access Denied', 'danger')
+        return redirect(url_for('home'))
+
+@app.route('/admin/approve_claim/<int:claim_id>', methods=['POST'])
+@login_required
+def approve_claim(claim_id):
+    if current_user.is_admin:
+        claim = Claim.query.get_or_404(claim_id)
+        organization = Organization.query.get_or_404(claim.organization_id)
+        if organization.approved_claims_count < organization.approval_limit:
+            claim.status = 'Approved'
+            organization.approved_claims_count += 1
+            db.session.commit()
+            flash('Claim approved successfully', 'success')
+        else:
+            flash('Approval limit reached for this organization', 'danger')
+        return redirect(url_for('manage_claims'))
+    else:
+        flash('Access Denied', 'danger')
+        return redirect(url_for('home'))
+
+@app.route('/admin/deny_claim/<int:claim_id>', methods=['POST'])
+@login_required
+def deny_claim(claim_id):
+    if current_user.is_admin:
+        claim = Claim.query.get_or_404(claim_id)
+        claim.status = 'Denied'
+        db.session.commit()
+        flash('Claim denied successfully', 'success')
+        return redirect(url_for('manage_claims'))
+    else:
+        flash('Access Denied', 'danger')
+        return redirect(url_for('home'))
+
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():

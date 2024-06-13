@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Manage Claims{% endblock %}
+
+{% block content %}
+<div class="w3-container w3-content" style="max-width: 1000px; margin-top: 80px;">
+    <h2>Manage Claims</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flashed-messages">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+    <table class="w3-table w3-bordered w3-striped w3-card-4">
+        <thead>
+            <tr>
+                <th>Intern</th>
+                <th>Organization</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for claim in claims %}
+            <tr>
+                <td>{{ claim.intern.name }}</td>
+                <td>{{ claim.organization.name }}</td>
+                <td>{{ claim.status }}</td>
+                <td>
+                    {% if claim.status == 'Pending' %}
+                    <form action="{{ url_for('approve_claim', claim_id=claim.id) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="w3-button w3-green">Approve</button>
+                    </form>
+                    <form action="{{ url_for('deny_claim', claim_id=claim.id) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="w3-button w3-red">Deny</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

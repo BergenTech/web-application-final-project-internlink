@@ -124,22 +124,25 @@
 
 <!-- Navbar -->
 <div class="w3-top">
- <div class="w3-bar w3-header w3-left-align w3-large">
-  <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-theme-d2" href="javascript:void(0);" onclick="openNav()"><i class="fa fa-bars"></i></a>
-  <a href="/" class="w3-bar-item w3-home-button w3-padding-large"><i class="fa fa-home w3-margin-right"></i>InternLink</a>
-  <a href="/view_jobs" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="News"><i class="fa fa-globe"></i></a>
-  <a href="
-  {% if session.get('user_id') %}
-    {% if session.get('user_type') == 'Intern' %}
-        /profile/intern
-    {% elif session.get('user_type') == 'Admin' %}
-        /profile/admin
-  {% endif %}
-  {% else %}
-    /register/intern
-  {% endif %}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Account Settings"><i class="fa fa-user"></i></a>
- </div>
+    <div class="w3-bar w3-header w3-left-align w3-large">
+        <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-theme-d2" href="javascript:void(0);" onclick="openNav()"><i class="fa fa-bars"></i></a>
+        <a href="/" class="w3-bar-item w3-home-button w3-padding-large"><i class="fa fa-home w3-margin-right"></i>InternLink</a>
+        <a href="/view_jobs" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="News"><i class="fa fa-globe"></i></a>
+        <a href="{% if session.get('user_id') %}
+            {% if session.get('user_type') == 'Intern' %}
+                /profile/intern
+            {% elif session.get('user_type') == 'Admin' %}
+                /profile/admin
+            {% endif %}
+            {% else %}
+                /register/intern
+            {% endif %}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Account Settings"><i class="fa fa-user"></i></a>
+        {% if current_user.is_admin %}
+            <a href="{{ url_for('manage_claims') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Manage Claims"><i class="fa fa-tasks"></i></a>
+        {% endif %}
+    </div>
 </div>
+
 
 <main>
 {%block content%}
