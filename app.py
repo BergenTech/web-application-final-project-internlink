@@ -10,26 +10,29 @@ from itsdangerous import URLSafeTimedSerializer
 from sqlalchemy.exc import IntegrityError
 from flask_migrate import Migrate
 import datetime
+from dotenv import load_dotenv
 
-
+# environment variables
+load_dotenv()
 
 app = Flask(__name__)
 # Calculate the next year
 next_year = datetime.datetime.now().year + 1
 next_year_suffix = str(next_year)[-2:]
 
+
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'Leo'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USERNAME'] = 'internlinkbt@gmail.com'
-app.config['MAIL_PASSWORD'] = 'hldc xffp nbxx vnwm'
-app.config['MAIL_DEFAULT_SENDER'] = 'internlinkbt@gmail.com'
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif'}
