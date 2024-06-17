@@ -9,9 +9,15 @@ import csv
 from itsdangerous import URLSafeTimedSerializer
 from sqlalchemy.exc import IntegrityError
 from flask_migrate import Migrate
+import datetime
+
 
 
 app = Flask(__name__)
+# Calculate the next year
+next_year = datetime.datetime.now().year + 1
+next_year_suffix = str(next_year)[-2:]
+
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
@@ -340,8 +346,8 @@ def register_intern():
         major = request.form['major']
         profile_photo = request.files.get('profile_photo')
 
-        if not intern_email.endswith('@bergen.org'):
-            flash('Only email addresses ending with @bergen.org are allowed to register.', 'error')
+        if not intern_email.endswith(f'{next_year_suffix}@bergen.org'):
+            flash('Only 11th grade bergen tech students are allowed to register.', 'error')
             return redirect(url_for('register_intern'))
 
         if intern_password != intern_confirm_password:

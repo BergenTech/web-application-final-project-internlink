@@ -1,133 +1,140 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Intern Link</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-<link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-blue-grey.css">
-<link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Open+Sans'>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<style>
-    html, body, h1, h2, h3, h4, h5 {font-family: "Trebuchet MS", sans-serif}
+    <title>Intern Link</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-blue-grey.css">
+    <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Open+Sans'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        html, body, h1, h2, h3, h4, h5 {font-family: "Trebuchet MS", sans-serif}
 
-    .w3-container {
-        padding: 20px;
-        background-color: #f2f2f2;
-        border-radius: 50px;
-    }
+        .w3-container {
+            padding: 20px;
+            background-color: #f2f2f2;
+            border-radius: 50px;
+        }
 
-    .w3-header {
-        background-color: black;
-    }
+        .w3-header {
+            background-color: black;
+        }
 
-    .w3-input {
-        width: 90%;
-        padding: 10px;
-        margin: 8px 0;
-        display: inline-block;
-        border: 1px solid #ccc;
-        border-radius: 15px;
-        box-sizing: border-box;
-    }
+        .w3-input {
+            width: 90%;
+            padding: 10px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 15px;
+            box-sizing: border-box;
+        }
 
-    .w3-image {
-        width: 100%;
-        height: auto;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
+        .w3-image {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
 
-    label {
-        font-weight: bold;
-    }
+        label {
+            font-weight: bold;
+        }
 
-    .w3-button {
-        background-color: rgb(192, 163, 4);
-        color: white;
-        padding: 10px 20px;
-        margin: 8px 0;
-        border: none;
-        border-radius: 70px;
-        cursor: pointer;
-        text-decoration: none;
-        font-size: 16px;
-        transition: background-color 0.3s ease;
-    }
+        .w3-button {
+            background-color: rgb(192, 163, 4);
+            color: white;
+            padding: 10px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 70px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
 
-    .w3-home-button {
-        background-color: white;
-        color: black;
-        padding: 10px 20px;
-        margin: 8px 0;
-        border: none;
-        border-radius: 70px;
-        cursor: pointer;
-        text-decoration: none;
-        font-size: 16px;
-        transition: background-color 0.3s ease;
-    }
+        .w3-home-button {
+            background-color: white;
+            color: black;
+            padding: 10px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 70px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
 
-    .w3-button:hover {
-        transform: scale(1.1);
-        transition: transform 0.3s ease;
-    }
+        .w3-button:hover {
+            transform: scale(1.1);
+            transition: transform 0.3s ease;
+        }
 
-    .w3-home-button:hover {
-        transform: scale(1.1);
-        transition: transform 0.3s ease;
-    }
+        .w3-home-button:hover {
+            transform: scale(1.1);
+            transition: transform 0.3s ease;
+        }
 
-    .button-container div {
-        margin-bottom: 10px;
-    }
+        .button-container div {
+            margin-bottom: 10px;
+        }
 
-    .message-box {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-        border: 1px solid #ccc;
-        padding: 10px;
-        border-radius: 5px;
-    }
+        .message-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+        }
 
-    .message {
-        flex-grow: 1;
-    }
+        .message {
+            flex-grow: 1;
+        }
 
-    .reply-btn {
-        margin-left: 10px;
-    }
+        .reply-btn {
+            margin-left: 10px;
+        }
 
-    .alert-success {
-        color: #155724;
-        background-color: #d4edda;
-        border-color: #c3e6cb;
-    }
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
 
-    .alert-error {
-        color: #721c24;
-        background-color: #f8d7da;
-        border-color: #f5c6cb;
-    }
+        .alert-error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
 
-    .alert {
-        padding: 15px;
-        margin-bottom: 20px;
-        border: 1px solid transparent;
-        border-radius: .25rem;
-    }
-</style>
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: .25rem;
+        }
+
+        /* Custom styles for the mobile menu */
+        .w3-bar-block.w3-show {
+            width: 40% !important;
+            right: 0;
+            left: auto;
+        }
+    </style>
 </head>
 <body class="w3-theme-l5">
 
 <!-- Navbar -->
 <div class="w3-top">
     <div class="w3-bar w3-header w3-left-align w3-large">
-        <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-theme-d2" href="javascript:void(0);" onclick="openNav()"><i class="fa fa-bars"></i></a>
-        <a href="/" class="w3-bar-item w3-home-button w3-padding-large"><i class="fa fa-home w3-margin-right"></i>InternLink</a>
-        <a href="/view_jobs" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="News"><i class="fa fa-globe"></i></a>
+        <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-hover-white w3-large w3-theme-d2" href="javascript:void(0);" onclick="openNav()"><i class="fa fa-bars"></i></a>
+        <a href="/" class="w3-bar-item w3-home-button"><i class="fa fa-home w3-margin-right"></i>InternLink</a>
+        <a href="/view_jobs" class="w3-bar-item w3-button w3-hide-small w3-hover-white" title="Jobs"><i class="fa fa-globe"></i></a>
         <a href="{% if session.get('user_id') %}
             {% if session.get('user_type') == 'Intern' %}
                 /profile/intern
@@ -138,17 +145,43 @@
                 /register/intern
             {% endif %}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Account Settings"><i class="fa fa-user"></i></a>
         {% if current_user.is_admin %}
-            <a href="{{ url_for('manage_claims') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Manage Claims"><i class="fa fa-tasks"></i></a>
+            <a href="{{ url_for('manage_claims') }}" class="w3-bar-item w3-button w3-hide-small w3-hover-white" title="Manage Claims"><i class="fa fa-tasks"></i></a>
+        {% endif %}
+    </div>
+
+    <!-- Mobile Navbar -->
+    <div id="navDemo" class="w3-bar-block w3-hide w3-hide-large w3-hide-medium w3-large">
+        <a href="/view_jobs" class="w3-bar-item w3-button w3-padding-large">Jobs</a>
+        <a href="{% if session.get('user_id') %}
+            {% if session.get('user_type') == 'Intern' %}
+                /profile/intern
+            {% elif session.get('user_type') == 'Admin' %}
+                /profile/admin
+            {% endif %}
+            {% else %}
+                /register/intern
+            {% endif %}" class="w3-bar-item w3-button w3-padding-large">Account Settings</a>
+        {% if current_user.is_admin %}
+            <a href="{{ url_for('manage_claims') }}" class="w3-bar-item w3-button w3-padding-large">Manage Claims</a>
         {% endif %}
     </div>
 </div>
 
-
 <main>
-{%block content%}
-
-{%endblock%}
+{% block content %}
+{% endblock %}
 </main>
+
+<script>
+function openNav() {
+    var x = document.getElementById("navDemo");
+    if (x.className.indexOf("w3-show") == -1) {
+        x.className += " w3-show";
+    } else { 
+        x.className = x.className.replace(" w3-show", "");
+    }
+}
+</script>
 
 </body>
 </html>
