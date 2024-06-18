@@ -20,7 +20,6 @@ app = Flask(__name__)
 next_year = datetime.datetime.now().year + 1
 next_year_suffix = str(next_year)[-2:]
 
-
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
@@ -34,7 +33,6 @@ app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-
 
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 INTERNS_FOLDER = os.path.join(UPLOAD_FOLDER, 'interns')
@@ -51,11 +49,8 @@ app.config['INTERNS_FOLDER'] = INTERNS_FOLDER
 app.config['LOGOS_FOLDER'] = LOGOS_FOLDER
 app.config['RESUMES_FOLDER'] = RESUMES_FOLDER
 
-
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-
-
 
 class Admin(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -78,10 +73,11 @@ class Admin(db.Model, UserMixin):
     @property
     def is_anonymous(self):
         return False
+
     @property
     def is_admin(self):
         return True  # Since this is the Admin class, always return True
-    
+
 @login_manager.user_loader
 def load_user(user_id):
     if session.get('user_type') == 'Intern':
@@ -90,7 +86,6 @@ def load_user(user_id):
         return Admin.query.get(int(user_id))
     elif session.get('user_type') == 'Organization':
         return Organization.query.get(int(user_id))
-
 
 class DataImportFlag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -143,13 +138,12 @@ class Claim(db.Model):
     organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable=False)
     intern_id = db.Column(db.Integer, db.ForeignKey('intern.id'), nullable=False)
 
-
 class InternOrganization(db.Model):
     __tablename__ = 'intern_organization'
     intern_id = db.Column(db.Integer, db.ForeignKey('intern.id'), primary_key=True)
     organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), primary_key=True)
     status = db.Column(db.String(50), default='Pending')
-    
+
     intern = db.relationship('Intern', backref=db.backref('intern_organizations', lazy=True))
     organization = db.relationship('Organization', backref=db.backref('intern_organizations', lazy=True))
 
@@ -212,7 +206,6 @@ def import_csv_data():
 
 # import_csv_data()
 
-
 @app.route('/admin/manage_claims')
 @login_required
 def manage_claims():
@@ -236,9 +229,6 @@ def manage_claims():
     else:
         flash('Access Denied', 'danger')
         return redirect(url_for('index'))
-
-
-
 
 @app.route('/admin/approve_claim/<int:intern_id>/<int:organization_id>', methods=['POST'])
 @login_required
@@ -270,7 +260,7 @@ def deny_claim(intern_id, organization_id):
     else:
         flash('Access Denied', 'danger')
         return redirect(url_for('index'))
-    
+
 @app.route('/admin/pending_claim/<int:intern_id>/<int:organization_id>', methods=['POST'])
 @login_required
 def pending_claim(intern_id, organization_id):
@@ -298,8 +288,6 @@ def remove_claim(intern_id, organization_id):
     else:
         flash('You do not have permission to remove this claim', 'error')
     return redirect(url_for('profile_intern'))
-
-
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
@@ -329,8 +317,6 @@ def claim_job(organization_id):
         else:
             flash('Error: Unable to claim job.', 'error')
     return redirect(url_for('view_jobs'))
-
-
 
 @app.route('/delete_profile/<int:intern_id>', methods=['POST'])
 def delete_profile(intern_id):
@@ -407,7 +393,7 @@ def register_intern():
         profile_photo_filename = None
         if profile_photo and allowed_file(profile_photo.filename):
             profile_photo_filename = secure_filename(profile_photo.filename)
-            profile_photo.save(os.path.join(app.config['UPLOAD_FOLDER'], profile_photo_filename))
+            profile_photo.save(os.path.join(app.config['INTERNS_FOLDER'], profile_photo_filename))
 
         new_intern = Intern(
             intern_name=intern_name,
@@ -502,7 +488,6 @@ def view_organization(organization_id):
     organization = Organization.query.get_or_404(organization_id)
     return render_template('view_organization.html', organization=organization)
 
-
 @app.route('/add_organization', methods=['GET', 'POST'])
 @login_required
 def add_organization():
@@ -552,9 +537,6 @@ def add_organization():
     else:
         flash('You do not have permission to access this page.', 'error')
         return redirect(url_for('index'))
-
-
-
 
 @app.route("/")
 def index():
@@ -606,27 +588,46 @@ def login():
 @app.route("/view_jobs", methods=['GET', 'POST'])
 @login_required
 def view_jobs():
+    page = request.args.get('page', 1, type=int)
+    per_page = 10  # Number of items per page
+
     if request.method == 'POST':
         view_option = request.form.get('view_option', 'cards')
+        major_filter = request.form.get('major_filter', '')
+        search_query = request.form.get('search_query', '')
     else:
         view_option = request.args.get('view_option', 'cards')
+        major_filter = request.args.get('major', '')
+        search_query = request.args.get('search', '')
 
-    major_filter = request.args.get('major', '')
-
+    query = Organization.query
     if major_filter:
-        organizations = Organization.query.filter(Organization.major.ilike(f'%{major_filter}%')).order_by(Organization.id.desc()).all()
-    else:
-        organizations = Organization.query.order_by(Organization.id.desc()).all()
+        query = query.filter(Organization.major.ilike(f'%{major_filter}%'))
+    if search_query:
+        query = query.filter(
+            Organization.company_name.ilike(f'%{search_query}%') |
+            Organization.website.ilike(f'%{search_query}%') |
+            Organization.street_address.ilike(f'%{search_query}%') |
+            Organization.city.ilike(f'%{search_query}%') |
+            Organization.state.ilike(f'%{search_query}%') |
+            Organization.zip_code.ilike(f'%{search_query}%') |
+            Organization.phone.ilike(f'%{search_query}%') |
+            Organization.email.ilike(f'%{search_query}%') |
+            Organization.internship_mentor.ilike(f'%{search_query}%') |
+            Organization.internship_topic.ilike(f'%{search_query}%') |
+            Organization.major.ilike(f'%{search_query}%')
+        )
 
-    return render_template('view_jobs.html', organizations=organizations, view_option=view_option, major_filter=major_filter)
+    organizations = query.paginate(page=page, per_page=per_page)
 
-# @app.before_request
-# def require_two_factor_auth():
-#     if request.path in ['/view_interns', '/add_organization']:
-#         if 'authenticated' not in session:
-#             return redirect(url_for('two_factor_auth'))
+    return render_template(
+        'view_jobs.html',
+        organizations=organizations,
+        view_option=view_option,
+        major_filter=major_filter,
+        search_query=search_query
+    )
 
-from flask import request
 
 @app.route('/view_interns', methods=['GET', 'POST'])
 @login_required
@@ -659,7 +660,6 @@ def view_interns():
     else:
         flash('You do not have permission to access this page.', 'error')
         return redirect(url_for('index'))
-
 
 @app.route("/two_factor_auth", methods=['GET', 'POST'])
 def two_factor_auth():
@@ -801,7 +801,6 @@ def edit_profile():
     db.session.commit()
     flash('Profile updated successfully!', 'success')
     return redirect(url_for(f'profile_{user_type.lower()}'))
-
 
 @app.route('/download_resume/<filename>')
 def download_resume(filename):

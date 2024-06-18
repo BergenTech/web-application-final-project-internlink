@@ -24,6 +24,7 @@
             <input type="radio" id="table" name="view_option" value="table" {% if view_option == 'table' %}checked{% endif %} onchange="submitViewForm()">
             <label for="table">Table</label>
             <input type="hidden" name="major" id="hidden-major" value="{{ major_filter }}">
+            <input type="hidden" name="search_query" id="hidden-search" value="{{ search_query }}">
         </form>
     </div>
 
@@ -47,13 +48,13 @@
         </div>
         <div class="search-container" style="text-align: right; margin-top: 20px;">
             <label for="search">Search:</label>
-            <input type="text" id="search" style="width: 200px; border-radius: 5px;" onkeyup="searchJobs()">
+            <input type="text" id="search" style="width: 200px; border-radius: 5px;" onchange="searchJobs()" value="{{ search_query }}">
         </div>
     </div>
 
     {% if view_option == 'cards' %}
     <div class="job-container">
-        {% for organization in organizations %}
+        {% for organization in organizations.items %}
             <div class="job-card" style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-bottom: 20px; display: flex;">
                 <div class="job-info" style="flex: 1;">
                     <h3>{{ organization.company_name }}</h3>
@@ -65,7 +66,7 @@
                     <p>Internship Topic: {{ organization.internship_topic }}</p>
                     <p>Related Major(s): {{ organization.major }}</p>
                 </div>
-                <div class="job-actions" style="display: flex; flex-direction: column; align-items: center;">
+                <div class="job-actions" style="display: flex; align-items: end;">
                     {% if session.get('user_type') == 'Admin' %}
                         {% if current_user.is_authenticated %}
                             <form method="post" action="{{ url_for('delete_organization', organization_id=organization.id) }}">
@@ -106,7 +107,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for organization in organizations %}
+                    {% for organization in organizations.items %}
                     <tr class="organization-row">
                         <td class="company-name">{{ organization.company_name }}</td>
                         <td class="website"><a href="{{ organization.website }}" target="_blank">{{ organization.website }}</a></td>
@@ -135,6 +136,25 @@
             </table>
         </div>
     {% endif %}
+
+    <!-- Pagination Controls -->
+    <ul class="pagination">
+        <li class="page-item {% if not organizations.has_prev %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('view_jobs', page=organizations.prev_num, major=major_filter, view_option=view_option, search=search_query) }}">&laquo; Prev</a>
+        </li>
+        {% for page_num in organizations.iter_pages() %}
+            {% if page_num %}
+                <li class="page-item {% if page_num == organizations.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('view_jobs', page=page_num, major=major_filter, view_option=view_option, search=search_query) }}">{{ page_num }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not organizations.has_next %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('view_jobs', page=organizations.next_num, major=major_filter, view_option=view_option, search=search_query) }}">Next &raquo;</a>
+        </li>
+    </ul>
 </div>
 
 <style>
@@ -233,29 +253,17 @@
 
 <script>
     function searchJobs() {
-        var input = document.getElementById("search");
-        var filter = input.value.toLowerCase();
-
-        var jobs;
-        if (document.querySelector('.job-container')) {
-            jobs = document.querySelectorAll('.job-container .job-card');
-        } else {
-            jobs = document.querySelectorAll('.table-container .organization-row');
-        }
-
-        jobs.forEach(function(job) {
-            var textContent = job.innerText || job.textContent;
-            if (textContent.toLowerCase().indexOf(filter) > -1) {
-                job.style.display = "";
-            } else {
-                job.style.display = "none";
-            }
-        });
+        var searchQuery = document.getElementById("search").value;
+        var url = new URL(window.location.href);
+        url.searchParams.set('search', searchQuery);
+        url.searchParams.set('page', 1); // Reset to first page
+        window.location.href = url.toString();
     }
 
     function handlePagination(pageNum) {
         var majorFilter = document.getElementById('major-filter').value;
-        var url = "{{ url_for('view_jobs') }}" + `?page=${pageNum}&major=${majorFilter}`;
+        var searchQuery = document.getElementById("search").value;
+        var url = "{{ url_for('view_jobs') }}" + `?page=${pageNum}&major=${majorFilter}&view_option={{ view_option }}&search=${searchQuery}`;
         window.location.href = url;
     }
 
@@ -272,14 +280,18 @@
     function applyFilters() {
         var selectedMajor = document.getElementById('major-filter').value;
         var viewOption = document.querySelector('input[name="view_option"]:checked').value;
+        var searchQuery = document.getElementById("search").value;
         var url = new URL(window.location.href);
         url.searchParams.set('major', selectedMajor);
         url.searchParams.set('view_option', viewOption);
+        url.searchParams.set('search', searchQuery);
+        url.searchParams.set('page', 1); // Reset to first page
         window.location.href = url.toString();
     }
 
     function submitViewForm() {
         document.getElementById('hidden-major').value = document.getElementById('major-filter').value;
+        document.getElementById('hidden-search').value = document.getElementById('search').value;
         document.getElementById('view-form').submit();
     }
 </script>
