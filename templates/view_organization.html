@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}{{ organization.company_name }}{% endblock %}
+
+{% block content %}
+<div class="w3-container w3-content" style="max-width: 800px; margin-top: 80px;">
+    <h2>{{ organization.company_name }}</h2>
+    <div class="profile-info" style="text-align: left;">
+        {% if organization.logo %}
+            <img src="{{ url_for('static', filename='uploads/logos/' + organization.logo) }}" alt="Logo" class="profile-photo">
+        {% else %}
+            <img src="{{ url_for('static', filename='uploads/logos/logo.png') }}" alt="Logo" class="profile-photo">
+        {% endif %}
+        <p><strong>Website:</strong> {{ organization.website }}</p>
+        <p><strong>Street Address:</strong> {{ organization.street_address }}</p>
+        <p><strong>City:</strong> {{ organization.city }}</p>
+        <p><strong>State:</strong> {{ organization.state }}</p>
+        <p><strong>Zip Code:</strong> {{ organization.zip_code }}</p>
+        <p><strong>Phone:</strong> {{ organization.phone }}</p>
+        <p><strong>Email:</strong> {{ organization.email }}</p>
+        <p><strong>Internship Mentor:</strong> {{ organization.internship_mentor }}</p>
+        <p><strong>Internship Topic:</strong> {{ organization.internship_topic }}</p>
+        <p><strong>Related Majors:</strong> {{ organization.major }}</p>
+    </div>
+</div>
+{% endblock %}

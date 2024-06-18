@@ -16,7 +16,7 @@
     {% endwith %}
     <h2>Add New Internship</h2>
     <br>
-    <form method="POST" action="{{ url_for('add_organization') }}" class="w3-row-padding">
+    <form method="POST" action="{{ url_for('add_organization') }}" class="w3-row-padding" enctype="multipart/form-data">
         <div class="input-container">
             <label for="company_name">Company Name:</label><br>
             <input type="text" id="company_name" name="company_name" class="w3-input w3-round" required><br>
@@ -47,6 +47,9 @@
 
             <label for="internship_topic">Internship Topic:</label><br>
             <input type="text" id="internship_topic" name="internship_topic" class="w3-input w3-round" required><br>
+
+            <label for="logo">Company Logo:</label><br>
+            <input type="file" id="logo" name="logo" class="w3-input w3-round"><br>
 
             <label for="majors">Related Majors:</label><br>
             <div id="majors">

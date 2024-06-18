@@ -34,11 +34,24 @@ app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
+
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
+INTERNS_FOLDER = os.path.join(UPLOAD_FOLDER, 'interns')
+LOGOS_FOLDER = os.path.join(UPLOAD_FOLDER, 'logos')
+RESUMES_FOLDER = os.path.join(UPLOAD_FOLDER, 'resumes')
 ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif'}
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+
+for folder in [UPLOAD_FOLDER, INTERNS_FOLDER, LOGOS_FOLDER, RESUMES_FOLDER]:
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['INTERNS_FOLDER'] = INTERNS_FOLDER
+app.config['LOGOS_FOLDER'] = LOGOS_FOLDER
+app.config['RESUMES_FOLDER'] = RESUMES_FOLDER
+
+
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -104,6 +117,7 @@ class Organization(db.Model, UserMixin):
     approval_limit = db.Column(db.Integer, default=5)
     approved_claims_count = db.Column(db.Integer, default=0)
     claims = db.relationship('Claim', backref='organization', lazy=True)
+    logo = db.Column(db.String(100))  # New field for logo
 
     def get_id(self):
         return str(self.id)
@@ -257,7 +271,20 @@ def deny_claim(intern_id, organization_id):
         flash('Access Denied', 'danger')
         return redirect(url_for('index'))
 
-
+@app.route('/remove_claim/<int:intern_id>/<int:organization_id>', methods=['POST'])
+@login_required
+def remove_claim(intern_id, organization_id):
+    if current_user.id == intern_id:
+        claim = InternOrganization.query.filter_by(intern_id=intern_id, organization_id=organization_id).first()
+        if claim:
+            db.session.delete(claim)
+            db.session.commit()
+            flash('Claim removed successfully', 'success')
+        else:
+            flash('Claim not found', 'error')
+    else:
+        flash('You do not have permission to remove this claim', 'error')
+    return redirect(url_for('profile_intern'))
 
 
 
@@ -457,7 +484,13 @@ def verify_admin_registration(token):
 
     return redirect(url_for('login'))
 
-@app.route('/add_organization', methods=['GET', 'POST'])
+@app.route('/organization/<int:organization_id>')
+def view_organization(organization_id):
+    organization = Organization.query.get_or_404(organization_id)
+    return render_template('view_organization.html', organization=organization)
+
+
+@@app.route('/add_organization', methods=['GET', 'POST'])
 @login_required
 def add_organization():
     if current_user.is_authenticated and session['user_type'] == 'Admin':
@@ -472,8 +505,14 @@ def add_organization():
             email = request.form['email']
             internship_mentor = request.form['internship_mentor']
             internship_topic = request.form['internship_topic']
-            majors = request.form.getlist('selected_majors')
-            major_string = ', '.join(majors)
+            majors = request.form['selected_majors']
+            logo = request.files.get('logo')
+
+            if logo and allowed_file(logo.filename):
+                logo_filename = secure_filename(logo.filename)
+                logo.save(os.path.join(app.config['LOGOS_FOLDER'], logo_filename))
+            else:
+                logo_filename = 'logo.png'  # Default logo
 
             new_organization = Organization(
                 company_name=company_name,
@@ -486,7 +525,8 @@ def add_organization():
                 email=email,
                 internship_mentor=internship_mentor,
                 internship_topic=internship_topic,
-                major=major_string
+                major=majors,
+                logo=logo_filename
             )
 
             db.session.add(new_organization)
@@ -499,6 +539,9 @@ def add_organization():
     else:
         flash('You do not have permission to access this page.', 'error')
         return redirect(url_for('index'))
+
+
+
 
 @app.route("/")
 def index():
@@ -564,11 +607,11 @@ def view_jobs():
 
     return render_template('view_jobs.html', organizations=organizations, view_option=view_option, major_filter=major_filter)
 
-@app.before_request
-def require_two_factor_auth():
-    if request.path in ['/view_interns', '/add_organization']:
-        if 'authenticated' not in session:
-            return redirect(url_for('two_factor_auth'))
+# @app.before_request
+# def require_two_factor_auth():
+#     if request.path in ['/view_interns', '/add_organization']:
+#         if 'authenticated' not in session:
+#             return redirect(url_for('two_factor_auth'))
 
 @app.route('/view_interns', methods=['GET', 'POST'])
 @login_required
@@ -620,34 +663,6 @@ def profile_admin():
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-@app.route('/edit_profile', methods=['POST'])
-def edit_profile():
-    user_id = session['user_id']
-    user_type = session.get('user_type')
-
-    if user_type == 'Intern':
-        user = Intern.query.get(user_id)
-        user.intern_name = request.form.get('intern_name', user.intern_name)
-        user.intern_email = request.form.get('intern_email', user.intern_email)
-        user.graduation_year = request.form.get('graduation_year', user.graduation_year)
-        user.profile_photo = user.profile_photo
-        if 'resume' in request.files:
-            resume_file = request.files['resume']
-            if resume_file and allowed_file(resume_file.filename):
-                filename = secure_filename(resume_file.filename)
-                resume_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                user.resume = filename
-    elif user_type == 'Admin':
-        user = Admin.query.get(user_id)
-        user.admin_name = request.form.get('admin_name', user.admin_name)
-        user.admin_email = request.form.get('admin_email', user.admin_email)
-        new_password = request.form.get('admin_password')
-        if new_password:
-            user.admin_password = generate_password_hash(new_password)
-    db.session.commit()
-    flash('Profile updated successfully!', 'success')
-    return redirect(url_for(f'profile_{user_type.lower()}'))
 
 @app.route('/remove_resume', methods=['POST'])
 def remove_resume():
@@ -713,7 +728,7 @@ def edit_profile_photo():
 
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        file.save(os.path.join(app.config['INTERNS_FOLDER'], filename))
         current_user.profile_photo = filename
         db.session.commit()
         flash('Profile photo updated successfully!', 'success')
@@ -721,6 +736,36 @@ def edit_profile_photo():
         flash('Invalid file type!', 'danger')
 
     return redirect(url_for('profile_intern'))
+
+@app.route('/edit_profile', methods=['POST'])
+@login_required
+def edit_profile():
+    user_id = session['user_id']
+    user_type = session.get('user_type')
+
+    if user_type == 'Intern':
+        user = Intern.query.get(user_id)
+        user.intern_name = request.form.get('intern_name', user.intern_name)
+        user.intern_email = request.form.get('intern_email', user.intern_email)
+        user.graduation_year = request.form.get('graduation_year', user.graduation_year)
+        user.profile_photo = user.profile_photo
+        if 'resume' in request.files:
+            resume_file = request.files['resume']
+            if resume_file and allowed_file(resume_file.filename):
+                filename = secure_filename(resume_file.filename)
+                resume_file.save(os.path.join(app.config['RESUMES_FOLDER'], filename))
+                user.resume = filename
+    elif user_type == 'Admin':
+        user = Admin.query.get(user_id)
+        user.admin_name = request.form.get('admin_name', user.admin_name)
+        user.admin_email = request.form.get('admin_email', user.admin_email)
+        new_password = request.form.get('admin_password')
+        if new_password:
+            user.admin_password = generate_password_hash(new_password)
+    db.session.commit()
+    flash('Profile updated successfully!', 'success')
+    return redirect(url_for(f'profile_{user_type.lower()}'))
+
 
 @app.route('/download_resume/<filename>')
 def download_resume(filename):
