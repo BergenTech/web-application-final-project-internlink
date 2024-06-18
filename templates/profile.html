@@ -27,17 +27,13 @@
         <div class="profile-photo-container" style="text-align: center; position: relative; display: inline-block;">
             {% if user.profile_photo %}
             <img src="{{ url_for('static', filename='uploads/interns/' + user.profile_photo) }}" alt="Profile Photo" class="profile-photo">
-        {% else %}
+            {% else %}
             <img src="{{ url_for('static', filename='uploads/default.jpg') }}" alt="Profile Photo" class="profile-photo">
-        {% endif %}
-        
-        {% if user.resume %}
-        <p><strong>Resume:</strong> <a href="{{ url_for('static', filename='uploads/resumes/' + user.resume) }}">{{ user.resume }}</a></p>
-        <form action="{{ url_for('remove_resume') }}" method="post">
-            <input type="hidden" name="user_id" value="{{ user.id }}">
-            <input type="submit" value="Remove Resume" class="w3-button w3-round w3-red w3-small">
-        </form>
-        {% endif %}        
+            {% endif %}
+            <form id="editPhotoForm" action="{{ url_for('edit_profile_photo') }}" method="post" enctype="multipart/form-data" class="edit-photo-form">
+                <label for="profile_photo" class="edit-photo-label">Edit</label>
+                <input type="file" id="profile_photo" name="profile_photo" style="display: none;" onchange="document.getElementById('editPhotoForm').submit();">
+            </form>
         </div>
         <br>
         {% endif %}
@@ -51,7 +47,7 @@
         <p><strong>Major:</strong> {{ user.major }}</p>
         
         {% if user.resume %}
-        <p><strong>Resume:</strong> <a href="{{ url_for('download_resume', filename=user.resume) }}">{{ user.resume }}</a></p>
+        <p><strong>Resume:</strong> <a href="{{ url_for('static', filename='uploads/resumes/' + user.resume) }}">{{ user.resume }}</a></p>
         <form action="{{ url_for('remove_resume') }}" method="post">
             <input type="hidden" name="user_id" value="{{ user.id }}">
             <input type="submit" value="Remove Resume" class="w3-button w3-round w3-red w3-small">
@@ -65,11 +61,11 @@
             <label for="intern_name">Name:</label>
             <input type="text" id="intern_name" name="intern_name" value="{{ user.intern_name }}" required class="w3-input w3-round"><br>
             <label for="intern_email">Email:</label>
-            <input type="email" id="intern_email" name="intern_email" value="{{ user.intern_email }}" required class="w3-input w3-round"><br>
+            <input type="email" id="intern_email" name="intern_email" value="{{ user.intern_email }}" required class="w3-input w3-round" readonly><br>
             <label for="graduation_year">Graduation Year:</label>
-            <input type="text" id="graduation_year" name="graduation_year" value="{{ user.graduation_year }}" required class="w3-input w3-round"><br><br>
+            <input type="text" id="graduation_year" name="graduation_year" value="{{ user.graduation_year }}" required class="w3-input w3-round" readonly><br><br>
             <label for="major">Major:</label>
-            <input type="text" id="major" name="major" value="{{ user.major }}" required class="w3-input w3-round"><br>
+            <input type="text" id="major" name="major" value="{{ user.major }}" required class="w3-input w3-round" readonly><br>
             <label for="resume">Resume:</label>
             <input type="file" id="resume" name="resume" class="w3-input w3-round"><br>
         {% elif user_type == 'Admin' %} 
@@ -83,8 +79,10 @@
         <input type="submit" value="Save Changes" class="w3-button w3-round w3-grey w3-small">
     </form>    
     <div class="container mt-5">
-        <p><strong>Claimed Jobs:</strong></p>
+        
         {% if user.intern_organizations %}
+        
+        <p><strong>Claimed Jobs:</strong></p>
         <table class="w3-table w3-bordered w3-striped w3-card-4">
             <thead>
                 <tr>
@@ -140,6 +138,10 @@
         left: 50%;
         transform: translateX(-50%);
         display: none;
+    }
+
+    .profile-photo-container:hover .edit-photo-form {
+        display: block;
     }
 
     .edit-photo-label {

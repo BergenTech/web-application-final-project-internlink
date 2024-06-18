@@ -39,14 +39,18 @@
                     </span>
                 </td>
                 <td>
-                    {% if claim.status == 'Requested' %}
+
                     <form action="{{ url_for('approve_claim', intern_id=claim.intern_id, organization_id=claim.organization_id) }}" method="POST" style="display:inline;">
                         <button type="submit" class="w3-button w3-green">Approve</button>
                     </form>
                     <form action="{{ url_for('deny_claim', intern_id=claim.intern_id, organization_id=claim.organization_id) }}" method="POST" style="display:inline;">
                         <button type="submit" class="w3-button w3-red">Deny</button>
                     </form>
-                    {% endif %}
+                    </form>
+                    <form action="{{ url_for('pending_claim', intern_id=claim.intern_id, organization_id=claim.organization_id) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="w3-button w3-orange">Pending</button>
+                    </form>
+
                 </td>
             </tr>
             {% endfor %}

@@ -52,35 +52,42 @@
     </div>
 
     {% if view_option == 'cards' %}
-        <div class="job-container">
-            {% for organization in organizations %}
-                <div class="job-card" style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-bottom: 20px; display: flex;">
-                    <div class="job-info" style="flex: 1;">
-                        <h3>{{ organization.company_name }}</h3>
-                        <p>Website: <a href="{{ organization.website }}" target="_blank">{{ organization.website }}</a></p>
-                        <p>Address: {{ organization.street_address }}, {{ organization.city }}, {{ organization.state }}, {{ organization.zip_code }}</p>
-                        <p>Phone: {{ organization.phone }}</p>
-                        <p>Email: <a href="mailto:{{ organization.email }}">{{ organization.email }}</a></p>
-                        <p>Internship Mentor: {{ organization.internship_mentor }}</p>
-                        <p>Internship Topic: {{ organization.internship_topic }}</p>
-                        <p>Related Major(s): {{ organization.major }}</p>
-                    </div>
-                    <div class="job-actions" style="display: flex; flex-direction: column; align-items: center;">
-                        {% if session.get('user_type') == 'Admin' %}
-                            {% if current_user.is_authenticated %}
-                                <form method="post" action="{{ url_for('delete_organization', organization_id=organization.id) }}">
-                                    <button class="w3-button w3-red w3-round-large" style="margin-bottom: 10px;">Delete Organization</button>
-                                </form>
-                            {% endif %}
-                        {% else %}
-                            <form method="post" action="{{ url_for('claim_job', organization_id=organization.id) }}" class="claim-form">
-                                <button class="w3-button w3-round-large claim-btn" style="margin-bottom: 10px;" onclick="confirmClaim(event)">Claim</button>
+    <div class="job-container">
+        {% for organization in organizations %}
+            <div class="job-card" style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-bottom: 20px; display: flex;">
+                <div class="job-info" style="flex: 1;">
+                    <h3>{{ organization.company_name }}</h3>
+                    <p>Website: <a href="{{ organization.website }}" target="_blank">{{ organization.website }}</a></p>
+                    <p>Address: {{ organization.street_address }}, {{ organization.city }}, {{ organization.state }}, {{ organization.zip_code }}</p>
+                    <p>Phone: {{ organization.phone }}</p>
+                    <p>Email: <a href="mailto:{{ organization.email }}">{{ organization.email }}</a></p>
+                    <p>Internship Mentor: {{ organization.internship_mentor }}</p>
+                    <p>Internship Topic: {{ organization.internship_topic }}</p>
+                    <p>Related Major(s): {{ organization.major }}</p>
+                </div>
+                <div class="job-actions" style="display: flex; flex-direction: column; align-items: center;">
+                    {% if session.get('user_type') == 'Admin' %}
+                        {% if current_user.is_authenticated %}
+                            <form method="post" action="{{ url_for('delete_organization', organization_id=organization.id) }}">
+                                <button class="w3-button w3-red w3-round-large" style="margin-bottom: 10px;">Delete Organization</button>
                             </form>
                         {% endif %}
-                    </div>
-                </div>           
-            {% endfor %}
-        </div>
+                    {% else %}
+                        <form method="post" action="{{ url_for('claim_job', organization_id=organization.id) }}" class="claim-form">
+                            <button class="w3-button w3-round-large claim-btn" style="margin-bottom: 10px;" onclick="confirmClaim(event)">Claim</button>
+                        </form>
+                    {% endif %}
+                </div>
+                <div class="job-logo" style="display: flex; align-items: center; justify-content: center; margin-left: 20px;">
+                    {% if organization.logo %}
+                        <img src="{{ url_for('static', filename='uploads/logos/' + organization.logo) }}" alt="{{ organization.company_name }} Logo" style="max-width: 50%; border-radius: 5px;">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='uploads/logos/default_logo.png') }}" alt="Default Logo" style="max-width: 50%;  border-radius: 5px;">
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
         
     {% else %}
         <div class="table-container">

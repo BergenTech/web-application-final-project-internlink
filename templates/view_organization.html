@@ -8,7 +8,7 @@
         {% if organization.logo %}
             <img src="{{ url_for('static', filename='uploads/logos/' + organization.logo) }}" alt="Logo" class="profile-photo">
         {% else %}
-            <img src="{{ url_for('static', filename='uploads/logos/logo.png') }}" alt="Logo" class="profile-photo">
+            <img src="{{ url_for('static', filename='uploads/logos/default_logo.png') }}" alt="Logo" class="profile-photo">
         {% endif %}
         <p><strong>Website:</strong> {{ organization.website }}</p>
         <p><strong>Street Address:</strong> {{ organization.street_address }}</p>

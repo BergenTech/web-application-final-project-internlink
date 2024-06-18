@@ -270,6 +270,19 @@ def deny_claim(intern_id, organization_id):
     else:
         flash('Access Denied', 'danger')
         return redirect(url_for('index'))
+    
+@app.route('/admin/pending_claim/<int:intern_id>/<int:organization_id>', methods=['POST'])
+@login_required
+def pending_claim(intern_id, organization_id):
+    if current_user.is_admin:
+        claim = InternOrganization.query.filter_by(intern_id=intern_id, organization_id=organization_id).first()
+        claim.status = 'Pending'
+        db.session.commit()
+        flash('Claim status is set as Pending.', 'success')
+        return redirect(url_for('manage_claims'))
+    else:
+        flash('Access Denied', 'danger')
+        return redirect(url_for('index'))
 
 @app.route('/remove_claim/<int:intern_id>/<int:organization_id>', methods=['POST'])
 @login_required
@@ -490,7 +503,7 @@ def view_organization(organization_id):
     return render_template('view_organization.html', organization=organization)
 
 
-@@app.route('/add_organization', methods=['GET', 'POST'])
+@app.route('/add_organization', methods=['GET', 'POST'])
 @login_required
 def add_organization():
     if current_user.is_authenticated and session['user_type'] == 'Admin':
@@ -613,17 +626,40 @@ def view_jobs():
 #         if 'authenticated' not in session:
 #             return redirect(url_for('two_factor_auth'))
 
+from flask import request
+
 @app.route('/view_interns', methods=['GET', 'POST'])
 @login_required
 def view_interns():
     if current_user.is_authenticated and session['user_type'] == 'Admin':
-        view_option = request.form.get('view_option', 'cards')
-        interns = Intern.query.all()
-        organization = Organization
-        return render_template("view_interns.html", view_option=view_option, interns=interns, Organization=organization)
+        page = request.args.get('page', 1, type=int)
+        per_page = 10  # Number of items per page
+        view_option = request.form.get('view_option', request.args.get('view_option', 'cards'))
+        major_filter = request.args.get('major_filter', '')
+        search_query = request.args.get('search_query', '')
+
+        query = Intern.query
+        if major_filter:
+            query = query.filter_by(major=major_filter)
+        if search_query:
+            query = query.filter(
+                Intern.intern_name.ilike(f'%{search_query}%') |
+                Intern.intern_email.ilike(f'%{search_query}%')
+            )
+
+        interns = query.paginate(page=page, per_page=per_page)
+
+        return render_template(
+            "view_interns.html",
+            view_option=view_option,
+            interns=interns,
+            major_filter=major_filter,
+            search_query=search_query
+        )
     else:
         flash('You do not have permission to access this page.', 'error')
         return redirect(url_for('index'))
+
 
 @app.route("/two_factor_auth", methods=['GET', 'POST'])
 def two_factor_auth():
@@ -769,7 +805,7 @@ def edit_profile():
 
 @app.route('/download_resume/<filename>')
 def download_resume(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    return send_from_directory(app.config['RESUMES_FOLDER'], filename)
 
 if __name__ == "__main__":
     app.run()

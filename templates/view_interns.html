@@ -26,32 +26,34 @@
     </div>
 
     <div class="filter-container" style="margin-bottom: 20px;">
-        <div class="filter-options" style="display: flex; align-items: center;">
-            <label for="major-filter">Filter By Major:</label>
-            <select id="major-filter" style="width: 200px; margin-right: 20px; border-radius: 5px;" onchange="applyFilters()">
-                <option value="">All</option>
-                <option value="Aerospace Engineering">Aerospace Engineering</option>
-                <option value="Automotive Engineering">Automotive Engineering</option>
-                <option value="Business & Finance">Business & Finance</option>
-                <option value="Commercial Art">Commercial Art</option>
-                <option value="Computer Science">Computer Science</option>
-                <option value="Culinary">Culinary</option>
-                <option value="Digital Media">Digital Media</option>
-                <option value="Fashion">Fashion</option>
-                <option value="Law">Law</option>
-            </select>
-        </div>
-        <div class="search-container" style="text-align: right; margin-top: 20px;">
-            <label for="search-input">Search:</label>
-            <input type="text" id="search-input" style="width: 200px; border-radius: 5px;" oninput="applyFilters()">
-        </div>
+        <form id="filter-form" action="{{ url_for('view_interns') }}" method="get">
+            <div class="filter-options" style="display: flex; align-items: center;">
+                <label for="major-filter">Filter By Major:</label>
+                <select id="major-filter" name="major_filter" style="width: 200px; margin-right: 20px; border-radius: 5px;" onchange="document.getElementById('filter-form').submit()">
+                    <option value="">All</option>
+                    <option value="Aerospace Engineering" {% if major_filter == 'Aerospace Engineering' %}selected{% endif %}>Aerospace Engineering</option>
+                    <option value="Automotive Engineering" {% if major_filter == 'Automotive Engineering' %}selected{% endif %}>Automotive Engineering</option>
+                    <option value="Business & Finance" {% if major_filter == 'Business & Finance' %}selected{% endif %}>Business & Finance</option>
+                    <option value="Commercial Art" {% if major_filter == 'Commercial Art' %}selected{% endif %}>Commercial Art</option>
+                    <option value="Computer Science" {% if major_filter == 'Computer Science' %}selected{% endif %}>Computer Science</option>
+                    <option value="Culinary" {% if major_filter == 'Culinary' %}selected{% endif %}>Culinary</option>
+                    <option value="Digital Media" {% if major_filter == 'Digital Media' %}selected{% endif %}>Digital Media</option>
+                    <option value="Fashion" {% if major_filter == 'Fashion' %}selected{% endif %}>Fashion</option>
+                    <option value="Law" {% if major_filter == 'Law' %}selected{% endif %}>Law</option>
+                </select>
+            </div>
+            <div class="search-container" style="text-align: right; margin-top: 20px;">
+                <label for="search-input">Search:</label>
+                <input type="text" id="search-input" name="search_query" value="{{ search_query }}" style="width: 200px; border-radius: 5px;" oninput="document.getElementById('filter-form').submit()">
+            </div>
+        </form>
     </div>
 
     {% if view_option == 'cards' %}
         <div class="intern-container">
-            {% for intern in interns %}
-                <div class="intern-card" style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-bottom: 20px; display: flex;">
-                    <div class="intern-info" style="flex: 1;">
+            {% for intern in interns.items %}
+                <div class="intern-card">
+                    <div class="intern-info">
                         <h3>{{ intern.intern_name }}</h3>
                         <p>Email: <a href="mailto:{{ intern.intern_email }}">{{ intern.intern_email }}</a></p>
                         <p>Graduation Year: {{ intern.graduation_year }}</p>
@@ -71,12 +73,12 @@
                             <p>Resume: <a href="{{ url_for('download_resume', filename=intern.resume) }}">Download Resume</a></p>
                         {% endif %}
                     </div>
-                    <div class="intern-actions" style="display: flex; flex-direction: column; align-items: center;">
+                    <div class="intern-actions">
                         <form method="post" action="{{ url_for('delete_profile', intern_id=intern.id) }}">
                             <button class="w3-button w3-red w3-round-large" style="margin-bottom: 10px;">Delete Profile</button>
                         </form>
-                        <img src="{{ url_for('static', filename='uploads/' + (intern.profile_photo if intern.profile_photo else 'default.jpeg')) }}" alt="Profile Photo" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 10px;">
-                        <form id="editForm_{{ intern.id }}" action="{{ url_for('edit_interns', intern_id=intern.id) }}" method="post" enctype="multipart/form-data" style="display: none; width: 100%; text-align: left;">
+                        <img src="{{ url_for('static', filename='uploads/interns/' + (intern.profile_photo if intern.profile_photo else 'default.jpeg')) }}" alt="Profile Photo" class="profile-photo">
+                        <form id="editForm_{{ intern.id }}" action="{{ url_for('edit_interns', intern_id=intern.id) }}" method="post" enctype="multipart/form-data" style="display: none;">
                             <label for="intern_name">Name:</label>
                             <input type="text" id="intern_name_{{ intern.id }}" name="intern_name" value="{{ intern.intern_name }}" required class="w3-input w3-round"><br>
                             <label for="intern_email">Email:</label>
@@ -121,7 +123,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for intern in interns %}
+                    {% for intern in interns.items %}
                         <tr class="intern-row">
                             <td class="intern-name">{{ intern.intern_name }}</td>
                             <td class="intern-email">{{ intern.intern_email }}</td>
@@ -156,6 +158,26 @@
             </table>
         </div>
     {% endif %}
+
+    <div class="pagination-container" style="text-align: center; margin-top: 20px;">
+        {% if interns.has_prev %}
+            <a href="{{ url_for('view_interns', page=interns.prev_num, view_option=view_option, major_filter=major_filter, search_query=search_query) }}" class="w3-button w3-grey w3-round">Previous</a>
+        {% endif %}
+        {% for page_num in interns.iter_pages() %}
+            {% if page_num %}
+                {% if page_num == interns.page %}
+                    <span class="w3-button w3-blue w3-round">{{ page_num }}</span>
+                {% else %}
+                    <a href="{{ url_for('view_interns', page=page_num, view_option=view_option, major_filter=major_filter, search_query=search_query) }}" class="w3-button w3-grey w3-round">{{ page_num }}</a>
+                {% endif %}
+            {% else %}
+                <span class="w3-button w3-grey w3-round">...</span>
+            {% endif %}
+        {% endfor %}
+        {% if interns.has_next %}
+            <a href="{{ url_for('view_interns', page=interns.next_num, view_option=view_option, major_filter=major_filter, search_query=search_query) }}" class="w3-button w3-grey w3-round">Next</a>
+        {% endif %}
+    </div>
 </div>
 
 <style>
@@ -210,6 +232,14 @@
         background-color: #ddd;
     }
 
+    .profile-photo {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 10px;
+    }
+
     @media screen and (max-width: 600px) {
         table {
             width: 100%;
@@ -224,32 +254,23 @@
 
 <script>
     function applyFilters() {
-        var selectedMajor = document.getElementById('major-filter').value;
-        var searchKeyword = document.getElementById('search-input').value.toLowerCase();
+        const selectedMajor = document.getElementById('major-filter').value.toLowerCase();
+        const searchKeyword = document.getElementById('search-input').value.toLowerCase();
         
-        var interns = document.querySelectorAll('.intern-card');
-        interns.forEach(function(intern) {
-            var internName = intern.querySelector('.intern-info h3').textContent.toLowerCase();
-            var internMajor = intern.querySelector('.intern-info p:nth-child(4)').textContent.replace('Major: ', '').toLowerCase();
-            if ((selectedMajor === '' || internMajor === selectedMajor.toLowerCase()) &&
-                (searchKeyword === '' || internName.includes(searchKeyword))) {
-                intern.style.display = 'flex';
-            } else {
-                intern.style.display = 'none';
-            }
+        const internCards = document.querySelectorAll('.intern-card');
+        internCards.forEach(function(card) {
+            const internName = card.querySelector('.intern-info h3').textContent.toLowerCase();
+            const internMajor = card.querySelector('.intern-info p:nth-child(4)').textContent.replace('Major: ', '').toLowerCase();
+            card.style.display = (selectedMajor === '' || internMajor === selectedMajor) &&
+                (searchKeyword === '' || internName.includes(searchKeyword)) ? 'flex' : 'none';
         });
 
-        var rows = document.querySelectorAll('.intern-row');
+        const rows = document.querySelectorAll('.intern-row');
         rows.forEach(function(row) {
-            var name = row.querySelector('.intern-name').textContent.toLowerCase();
-            var email = row.querySelector('.intern-email').textContent.toLowerCase();
-            var major = row.querySelector('.intern-major').textContent.toLowerCase();
-            if ((selectedMajor === '' || major === selectedMajor.toLowerCase()) &&
-                (searchKeyword === '' || name.includes(searchKeyword) || email.includes(searchKeyword))) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+            const name = row.querySelector('.intern-name').textContent.toLowerCase();
+            const major = row.querySelector('.intern-major').textContent.toLowerCase();
+            row.style.display = (selectedMajor === '' || major === selectedMajor) &&
+                (searchKeyword === '' || name.includes(searchKeyword)) ? '' : 'none';
         });
     }
 
@@ -257,12 +278,8 @@
     document.getElementById('search-input').addEventListener('input', applyFilters);
 
     function toggleEditForm(internId) {
-        var editForm = document.getElementById("editForm_" + internId);
-        if (editForm.style.display === "none") {
-            editForm.style.display = "block";
-        } else {
-            editForm.style.display = "none";
-        }
+        const editForm = document.getElementById("editForm_" + internId);
+        editForm.style.display = (editForm.style.display === "none" || !editForm.style.display) ? "block" : "none";
     }
 </script>
 {% endblock %}
