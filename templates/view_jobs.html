@@ -55,7 +55,7 @@
     {% if view_option == 'cards' %}
     <div class="job-container">
         {% for organization in organizations.items %}
-            <div class="job-card" style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-bottom: 20px; display: flex;">
+            <div class="job-card" style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-bottom: 10px; display: flex;">
                 <div class="job-info" style="flex: 1;">
                     <h3>{{ organization.company_name }}</h3>
                     <p>Website: <a href="{{ organization.website }}" target="_blank">{{ organization.website }}</a></p>
@@ -75,7 +75,7 @@
                         {% endif %}
                     {% else %}
                         <form method="post" action="{{ url_for('claim_job', organization_id=organization.id) }}" class="claim-form">
-                            <button class="w3-button w3-round-large claim-btn" style="margin-bottom: 10px;" onclick="confirmClaim(event)">Claim</button>
+                            <button class="w3-button w3-round-large claim-btn" style="margin-bottom: 10px;" onclick="confirmClaim(event)">Add</button>
                         </form>
                     {% endif %}
                 </div>
@@ -268,7 +268,7 @@
     }
 
     function confirmClaim(event) {
-        var confirmation = confirm("Only claim this job if this is your confirmed senior internship.");
+        var confirmation = confirm("Are you sure you want to add in your internship wish list?");
         if (confirmation) {
             document.querySelector('.claim-form').submit();
         } else {
